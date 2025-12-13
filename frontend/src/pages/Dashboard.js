@@ -3,13 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../api";
 
 import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Button,
   Box,
   Card,
   CardContent,
+  Typography,
+  Button,
   Table,
   TableHead,
   TableRow,
@@ -21,7 +19,9 @@ import {
   InputLabel,
   Grid,
   TextField,
-  Menu, 
+  TableContainer,
+  Paper,
+  Stack
 } from "@mui/material";
 
 export default function Dashboard() {
@@ -34,26 +34,12 @@ export default function Dashboard() {
   const [todayOnly, setTodayOnly] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
 
-const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user"));
+  const role = user?.role;
 
-
-const [adminAnchor, setAdminAnchor] = useState(null);
-
-const role = user?.role;
-
-const isAdmin = role === "admin";
-const canEdit = role === "admin" || role === "user";
-const isViewer = role === "viewer";
-
-const openAdminMenu = (event) => {
-  setAdminAnchor(event.currentTarget);
-};
-
-const closeAdminMenu = () => {
-  setAdminAnchor(null);
-};
-
-
+  const isAdmin = role === "admin";
+  const canEdit = role === "admin" || role === "user";
+  const isViewer = role === "viewer";
 
   useEffect(() => {
     fetchCases();
@@ -64,26 +50,18 @@ const closeAdminMenu = () => {
     setCases(res.data);
   };
 
-  const logout = () => {
-    localStorage.clear();
-    navigate("/");
-  };
-
   const today = new Date().toISOString().slice(0, 10);
 
-  const filteredCases = cases.filter(c => {
+  const filteredCases = cases.filter((c) => {
     if (court && c.court !== court) return false;
     if (status && c.status !== status) return false;
-
     if (todayOnly && c.nextDate?.slice(0, 10) !== today) return false;
-
     if (selectedDate && c.nextDate?.slice(0, 10) !== selectedDate) return false;
-
     return true;
   });
 
-  const courts = [...new Set(cases.map(c => c.court))];
-  const statuses = [...new Set(cases.map(c => c.status))];
+  const courts = [...new Set(cases.map((c) => c.court))];
+  const statuses = [...new Set(cases.map((c) => c.status))];
 
   const printTable = () => {
     const printContent = printRef.current.innerHTML;
@@ -112,111 +90,110 @@ const closeAdminMenu = () => {
   };
 
   return (
-    <>
-      {/* Top Bar */}
+    <Box sx={{ p: 3 }}>
+      <Card>
+        <CardContent>
+          {/* HEADER */}
+          <Typography variant="h5" fontWeight="bold" mb={3}>
+            Cases Dashboard
+          </Typography>
 
-
-
-
-      {/* Main Content */}
-      <Box sx={{ p: 3 }}>
-        <Card>
-          <CardContent>
-
-
-
-
-            {/* Filters */}
-            <Grid container spacing={2} mb={4}>
-
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
+          {/* FILTERS */}
+          <Grid container spacing={2} mb={4}>
+            <Grid item xs={12}>
+              <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
+                <FormControl sx={{ minWidth: 120, flex: 1 }}>
                   <InputLabel>Court</InputLabel>
                   <Select
                     value={court}
                     label="Court"
-                    onChange={e => setCourt(e.target.value)}
-                    sx={{ minWidth: 200 }}
-                    
+                    onChange={(e) => setCourt(e.target.value)}
                   >
                     <MenuItem value="">All</MenuItem>
-                    {courts.map(c => (
+                    {courts.map((c) => (
                       <MenuItem key={c} value={c}>{c}</MenuItem>
                     ))}
                   </Select>
                 </FormControl>
-              </Grid>
 
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
+                <FormControl sx={{ minWidth: 120, flex: 1 }}>
                   <InputLabel>Status</InputLabel>
                   <Select
                     value={status}
                     label="Status"
-                    onChange={e => setStatus(e.target.value)}
-                    sx={{ minWidth: 200 }}
+                    onChange={(e) => setStatus(e.target.value)}
                   >
                     <MenuItem value="">All</MenuItem>
-                    {statuses.map(s => (
+                    {statuses.map((s) => (
                       <MenuItem key={s} value={s}>{s}</MenuItem>
                     ))}
                   </Select>
                 </FormControl>
-              </Grid>
-
-              <Grid item xs={12} md={3}>
-                <TextField
-                  fullWidth
-                  type="date"
-                  label="Next Date"
-                  InputLabelProps={{ shrink: true }}
-                  value={selectedDate}
-                  onChange={e => {
-                    setSelectedDate(e.target.value);
-                    setTodayOnly(false);
-                  }}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={3}>
-                <Button
-                  fullWidth
-                  variant={todayOnly ? "contained" : "outlined"}
-                  onClick={() => {
-                    setTodayOnly(!todayOnly);
-                    setSelectedDate("");
-                  }}
-                  sx={{ height: "56px" }}
-                >
-                  Today&apos;s Cases
-                </Button>
-              </Grid>
-
-              <Grid item xs={12} md={3}>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  onClick={() => {
-                    setCourt("");
-                    setStatus("");
-                    setTodayOnly(false);
-                    setSelectedDate("");
-                  }}
-                  sx={{ height: "56px" }}
-                >
-                  Reset Filters
-                </Button>
-              </Grid>
-
+              </Stack>
             </Grid>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-              <Button variant="contained" onClick={printTable}>
-                Print
+
+            <Grid item xs={12} md={3}>
+              <TextField
+                fullWidth
+                type="date"
+                label="Next Date"
+                InputLabelProps={{ shrink: true }}
+                value={selectedDate}
+                onChange={(e) => {
+                  setSelectedDate(e.target.value);
+                  setTodayOnly(false);
+                }}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={3}>
+              <Button
+                fullWidth
+                variant={todayOnly ? "contained" : "outlined"}
+                onClick={() => {
+                  setTodayOnly(!todayOnly);
+                  setSelectedDate("");
+                }}
+                sx={{ height: "56px" }}
+              >
+                Today&apos;s Cases
               </Button>
-            </Box>
-            {/* Table (Printable Area) */}
+            </Grid>
+
+            <Grid item xs={12} md={3}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => {
+                  setCourt("");
+                  setStatus("");
+                  setTodayOnly(false);
+                  setSelectedDate("");
+                }}
+                sx={{ height: "56px" }}
+              >
+                Reset Filters
+              </Button>
+            </Grid>
+          </Grid>
+
+          {/* PRINT BUTTON */}
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+            <Button variant="contained" onClick={printTable}>
+              Print
+            </Button>
+          </Box>
+
+          {/* SCROLLABLE TABLE */}
+          <TableContainer
+            component={Paper}
+            sx={{
+              overflowX: "auto",
+              WebkitOverflowScrolling: "touch"
+            }}
+          >
             <div ref={printRef}>
-              <Table>
+              <Table sx={{ minWidth: 900 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell><b>Case No</b></TableCell>
@@ -229,7 +206,7 @@ const closeAdminMenu = () => {
                 </TableHead>
 
                 <TableBody>
-                  {filteredCases.map(c => (
+                  {filteredCases.map((c) => (
                     <TableRow key={c._id} hover>
                       <TableCell>
                         <Link
@@ -257,10 +234,9 @@ const closeAdminMenu = () => {
                 </TableBody>
               </Table>
             </div>
-
-          </CardContent>
-        </Card>
-      </Box>
-    </>
+          </TableContainer>
+        </CardContent>
+      </Card>
+    </Box>
   );
 }

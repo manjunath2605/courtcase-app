@@ -184,26 +184,27 @@ const isViewer = role === "viewer";
           </Box>
 
           {/* Actions */}
-          <Stack direction="row" justifyContent="space-between" mt={4}>
-            <Button variant="outlined" onClick={() => navigate("/dashboard")}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent={{ xs: 'stretch', sm: 'space-between' }} spacing={2} mt={4}>
+            <Button variant="outlined" onClick={() => navigate("/dashboard")} fullWidth={{ xs: true, sm: false }}>
               Back
             </Button>
 
-            <Box>
-              {isAdmin && (
-                <Button
-                  variant="contained"
-                  color="error"
-                  sx={{ mr: 2 }}
-                  onClick={deleteCase}
-                >
-                  Delete Case
-                </Button>
-              )}
-             {!isViewer  && <Button variant="contained" onClick={updateCase}>
+            {isAdmin && (
+              <Button
+                variant="contained"
+                color="error"
+                onClick={deleteCase}
+                fullWidth={{ xs: true, sm: false }}
+              >
+                Delete Case
+              </Button>
+            )}
+
+            {!isViewer && (
+              <Button variant="contained" onClick={updateCase} fullWidth={{ xs: true, sm: false }}>
                 Save Changes
-              </Button> }
-            </Box>
+              </Button>
+            )}
           </Stack>
         </CardContent>
       </Card>

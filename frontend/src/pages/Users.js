@@ -63,14 +63,16 @@ export default function Users() {
           const isSelf = u._id === currentUser.id;
 
           return (
-            <Grid item xs={12} md={6} lg={4} key={u._id}>
-              <Card sx={{ height: "100%" }}>
-                <CardContent>
+            <Grid item xs={12} sm={6} md={4} key={u._id}>
+              <Card sx={{ width: 320, height: 300, mx: 'auto', display: 'flex', flexDirection: 'column' }}>
+                <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                   {/* USER INFO */}
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Box>
-                      <Typography fontWeight="bold">{u.name}</Typography>
-                      <Typography variant="body2" color="text.secondary">
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography fontWeight="bold" sx={{ wordBreak: 'break-word' }}>
+                        {u.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word' }}>
                         {u.email}
                       </Typography>
                     </Box>
@@ -113,7 +115,7 @@ export default function Users() {
                   </TextField>
 
                   {/* ACTIONS */}
-                  <Stack direction="row" justifyContent="space-between" mt={3}>
+                  <Stack direction="row" justifyContent="space-between" mt={3} sx={{ mt: 'auto' }}>
                     <Button
                       variant="contained"
                       disabled={!roleChanged || isSelf}
@@ -138,6 +140,7 @@ export default function Users() {
                       color="text.secondary"
                       display="block"
                       mt={1}
+                      sx={{ wordBreak: 'break-word' }}
                     >
                       You cannot modify your own role
                     </Typography>
