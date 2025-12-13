@@ -36,7 +36,7 @@ export default function Login() {
   };
 
   return (
-    <Box sx={{ width: 350, mx: "auto", mt: 10 }}>
+    <Box sx={{ width: { xs: '90%', sm: 350 }, mx: "auto", mt: { xs: 5, sm: 10 } }}>
       <Typography variant="h5" mb={2}>Login</Typography>
 
       {error && <Typography color="error">{error}</Typography>}

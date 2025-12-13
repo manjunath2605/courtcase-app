@@ -99,83 +99,98 @@ export default function Dashboard() {
           </Typography>
 
           {/* FILTERS */}
-          <Grid container spacing={2} mb={4}>
-            <Grid item xs={12}>
-              <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
-                <FormControl sx={{ minWidth: 120, flex: 1 }}>
-                  <InputLabel>Court</InputLabel>
-                  <Select
-                    value={court}
-                    label="Court"
-                    onChange={(e) => setCourt(e.target.value)}
-                  >
-                    <MenuItem value="">All</MenuItem>
-                    {courts.map((c) => (
-                      <MenuItem key={c} value={c}>{c}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+ {/* FILTERS */}
+<Box sx={{ mb: 4 }}>
+  <Stack
+    direction="row"
+    spacing={2}
+    useFlexGap
+    sx={{
+      flexWrap: "wrap"
+    }}
+  >
+    {/* Court */}
+    <FormControl sx={{ minWidth: 160 }}>
+      <InputLabel>Court</InputLabel>
+      <Select
+        value={court}
+        label="Court"
+        onChange={(e) => setCourt(e.target.value)}
+      >
+        <MenuItem value="">All</MenuItem>
+        {courts.map((c) => (
+          <MenuItem key={c} value={c}>
+            {c}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
 
-                <FormControl sx={{ minWidth: 120, flex: 1 }}>
-                  <InputLabel>Status</InputLabel>
-                  <Select
-                    value={status}
-                    label="Status"
-                    onChange={(e) => setStatus(e.target.value)}
-                  >
-                    <MenuItem value="">All</MenuItem>
-                    {statuses.map((s) => (
-                      <MenuItem key={s} value={s}>{s}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Stack>
-            </Grid>
+    {/* Status */}
+    <FormControl sx={{ minWidth: 160 }}>
+      <InputLabel>Status</InputLabel>
+      <Select
+        value={status}
+        label="Status"
+        onChange={(e) => setStatus(e.target.value)}
+      >
+        <MenuItem value="">All</MenuItem>
+        {statuses.map((s) => (
+          <MenuItem key={s} value={s}>
+            {s}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
 
-            <Grid item xs={12} md={3}>
-              <TextField
-                fullWidth
-                type="date"
-                label="Next Date"
-                InputLabelProps={{ shrink: true }}
-                value={selectedDate}
-                onChange={(e) => {
-                  setSelectedDate(e.target.value);
-                  setTodayOnly(false);
-                }}
-              />
-            </Grid>
+    {/* Date */}
+    <TextField
+      type="date"
+      label="Next Date"
+      InputLabelProps={{ shrink: true }}
+      value={selectedDate}
+      onChange={(e) => {
+        setSelectedDate(e.target.value);
+        setTodayOnly(false);
+      }}
+      sx={{ minWidth: 170 }}
+    />
 
-            <Grid item xs={12} md={3}>
-              <Button
-                fullWidth
-                variant={todayOnly ? "contained" : "outlined"}
-                onClick={() => {
-                  setTodayOnly(!todayOnly);
-                  setSelectedDate("");
-                }}
-                sx={{ height: "56px" }}
-              >
-                Today&apos;s Cases
-              </Button>
-            </Grid>
+    {/* Today */}
+    <Button
+      variant={todayOnly ? "contained" : "outlined"}
+      onClick={() => {
+        setTodayOnly(!todayOnly);
+        setSelectedDate("");
+      }}
+      sx={{
+        height: "56px",
+        whiteSpace: "nowrap"
+      }}
+    >
+      Today&apos;s Cases
+    </Button>
 
-            <Grid item xs={12} md={3}>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() => {
-                  setCourt("");
-                  setStatus("");
-                  setTodayOnly(false);
-                  setSelectedDate("");
-                }}
-                sx={{ height: "56px" }}
-              >
-                Reset Filters
-              </Button>
-            </Grid>
-          </Grid>
+    {/* Reset */}
+    <Button
+      variant="outlined"
+      onClick={() => {
+        setCourt("");
+        setStatus("");
+        setTodayOnly(false);
+        setSelectedDate("");
+      }}
+      sx={{
+        height: "56px",
+        whiteSpace: "nowrap"
+      }}
+    >
+      Reset Filters
+    </Button>
+  </Stack>
+</Box>
+
+
 
           {/* PRINT BUTTON */}
           <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
