@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import api from "../api";
 
 import {
@@ -17,15 +17,15 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Grid,
   TextField,
   TableContainer,
   Paper,
-  Stack
+  Stack,
+  Chip,
+  Divider
 } from "@mui/material";
 
 export default function Dashboard() {
-  const navigate = useNavigate();
   const printRef = useRef();
 
   const [cases, setCases] = useState([]);
@@ -33,13 +33,11 @@ export default function Dashboard() {
   const [status, setStatus] = useState("");
   const [todayOnly, setTodayOnly] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
+  const [search, setSearch] = useState("");
+
 
   const user = JSON.parse(localStorage.getItem("user"));
   const role = user?.role;
-
-  const isAdmin = role === "admin";
-  const canEdit = role === "admin" || role === "user";
-  const isViewer = role === "viewer";
 
   useEffect(() => {
     fetchCases();
@@ -57,8 +55,19 @@ export default function Dashboard() {
     if (status && c.status !== status) return false;
     if (todayOnly && c.nextDate?.slice(0, 10) !== today) return false;
     if (selectedDate && c.nextDate?.slice(0, 10) !== selectedDate) return false;
+
+    if (search) {
+      const q = search.toLowerCase();
+      return (
+        c.caseNo?.toString().toLowerCase().includes(q) ||
+        c.court?.toLowerCase().includes(q) ||
+        c.partyName?.toLowerCase().includes(q)
+      );
+    }
+
     return true;
   });
+
 
   const courts = [...new Set(cases.map((c) => c.court))];
   const statuses = [...new Set(cases.map((c) => c.status))];
@@ -70,11 +79,11 @@ export default function Dashboard() {
     win.document.write(`
       <html>
         <head>
-          <title>Print Cases</title>
+          <title>Cases List</title>
           <style>
             body { font-family: Arial; padding: 20px; }
             table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid #333; padding: 8px; text-align: left; }
+            th, td { border: 1px solid #333; padding: 8px; }
             th { background: #f0f0f0; }
           </style>
         </head>
@@ -90,126 +99,129 @@ export default function Dashboard() {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Card>
+    <Box sx={{ p: { xs: 2, md: 3 }, background: "#f5f7f6" }}>
+      <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
         <CardContent>
           {/* HEADER */}
-          <Typography variant="h5" fontWeight="bold" mb={3}>
-            Cases Dashboard
-          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 3
+            }}
+          >
+            <Typography variant="h5" fontWeight="bold" color="#1f4f46">
+              Cases Dashboard
+            </Typography>
 
-          {/* FILTERS */}
- {/* FILTERS */}
-<Box sx={{ mb: 4 }}>
-  <Stack
-    direction="row"
-    spacing={2}
-    useFlexGap
-    sx={{
-      flexWrap: "wrap"
-    }}
-  >
-    {/* Court */}
-    <FormControl sx={{ minWidth: 160 }}>
-      <InputLabel>Court</InputLabel>
-      <Select
-        value={court}
-        label="Court"
-        onChange={(e) => setCourt(e.target.value)}
-      >
-        <MenuItem value="">All</MenuItem>
-        {courts.map((c) => (
-          <MenuItem key={c} value={c}>
-            {c}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-
-    {/* Status */}
-    <FormControl sx={{ minWidth: 160 }}>
-      <InputLabel>Status</InputLabel>
-      <Select
-        value={status}
-        label="Status"
-        onChange={(e) => setStatus(e.target.value)}
-      >
-        <MenuItem value="">All</MenuItem>
-        {statuses.map((s) => (
-          <MenuItem key={s} value={s}>
-            {s}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-
-    {/* Date */}
-    <TextField
-      type="date"
-      label="Next Date"
-      InputLabelProps={{ shrink: true }}
-      value={selectedDate}
-      onChange={(e) => {
-        setSelectedDate(e.target.value);
-        setTodayOnly(false);
-      }}
-      sx={{ minWidth: 170 }}
-    />
-
-    {/* Today */}
-    <Button
-      variant={todayOnly ? "contained" : "outlined"}
-      onClick={() => {
-        setTodayOnly(!todayOnly);
-        setSelectedDate("");
-      }}
-      sx={{
-        height: "56px",
-        whiteSpace: "nowrap"
-      }}
-    >
-      Today&apos;s Cases
-    </Button>
-
-    {/* Reset */}
-    <Button
-      variant="outlined"
-      onClick={() => {
-        setCourt("");
-        setStatus("");
-        setTodayOnly(false);
-        setSelectedDate("");
-      }}
-      sx={{
-        height: "56px",
-        whiteSpace: "nowrap"
-      }}
-    >
-      Reset Filters
-    </Button>
-  </Stack>
-</Box>
-
-
-
-          {/* PRINT BUTTON */}
-          <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
             <Button variant="contained" onClick={printTable}>
               Print
             </Button>
           </Box>
 
-          {/* SCROLLABLE TABLE */}
+          <Divider sx={{ mb: 3 }} />
+
+          {/* FILTERS */}
+          <Box sx={{ mb: 4 }}>
+            <Stack
+              direction="row"
+              spacing={2}
+              useFlexGap
+              flexWrap="wrap"
+
+            >
+
+              {/* 🔍 SEARCH */}
+              <TextField
+                label="Search Case No / Court / Party Name"
+                placeholder="Type to search..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                sx={{ minWidth: 260 }}
+              />
+              <FormControl sx={{ minWidth: 180 }}>
+                <InputLabel>Court</InputLabel>
+                <Select
+                  value={court}
+                  label="Court"
+                  onChange={(e) => setCourt(e.target.value)}
+                >
+                  <MenuItem value="">All</MenuItem>
+                  {courts.map((c) => (
+                    <MenuItem key={c} value={c}>
+                      {c}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl sx={{ minWidth: 180 }}>
+                <InputLabel>Stage</InputLabel>
+                <Select
+                  value={status}
+                  label="Status"
+                  onChange={(e) => setStatus(e.target.value)}
+                >
+                  <MenuItem value="">All</MenuItem>
+                  {statuses.map((s) => (
+                    <MenuItem key={s} value={s}>
+                      {s}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <TextField
+                type="date"
+                label="Next Date"
+                InputLabelProps={{ shrink: true }}
+                value={selectedDate}
+                onChange={(e) => {
+                  setSelectedDate(e.target.value);
+                  setTodayOnly(false);
+                }}
+                sx={{ minWidth: 180 }}
+              />
+
+              <Button
+                variant={todayOnly ? "contained" : "outlined"}
+                onClick={() => {
+                  setTodayOnly(!todayOnly);
+                  setSelectedDate("");
+                }}
+                sx={{ height: 56 }}
+              >
+                Today&apos;s Cases
+              </Button>
+
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => {
+                  setCourt("");
+                  setStatus("");
+                  setTodayOnly(false);
+                  setSelectedDate("");
+                }}
+                sx={{ height: 56 }}
+              >
+                Reset
+              </Button>
+            </Stack>
+          </Box>
+
+          {/* TABLE */}
           <TableContainer
             component={Paper}
             sx={{
-              overflowX: "auto",
-              WebkitOverflowScrolling: "touch"
+              borderRadius: 2,
+              boxShadow: 1
             }}
           >
             <div ref={printRef}>
               <Table sx={{ minWidth: 900 }}>
-                <TableHead>
+                <TableHead sx={{ background: "#f1f5f4" }}>
                   <TableRow>
                     <TableCell><b>Case No</b></TableCell>
                     <TableCell><b>Court</b></TableCell>
@@ -226,14 +238,30 @@ export default function Dashboard() {
                       <TableCell>
                         <Link
                           to={`/cases/${c._id}`}
-                          style={{ textDecoration: "none", color: "#1976d2" }}
+                          style={{
+                            textDecoration: "none",
+                            color: "#1f4f46",
+                            fontWeight: 600
+                          }}
                         >
                           {c.caseNo}
                         </Link>
                       </TableCell>
                       <TableCell>{c.court}</TableCell>
                       <TableCell>{c.partyName}</TableCell>
-                      <TableCell>{c.status}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={c.status}
+                          color={
+                            c.status === "Open"
+                              ? "success"
+                              : c.status === "Closed"
+                                ? "error"
+                                : "warning"
+                          }
+                          size="small"
+                        />
+                      </TableCell>
                       <TableCell>{c.nextDate?.slice(0, 10)}</TableCell>
                       <TableCell>{c.remarks}</TableCell>
                     </TableRow>
