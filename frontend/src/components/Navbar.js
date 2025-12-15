@@ -38,7 +38,7 @@ export default function Navbar() {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     navigate("/");
-    window.location.reload(); // ensures navbar refresh
+    window.location.reload();
   };
 
   /* ======================
@@ -104,7 +104,7 @@ export default function Navbar() {
           </Typography>
 
           {/* Desktop Menu */}
-          <Box sx={{ display: { xs: "none", sm: "block" } }}>
+          <Box sx={{ display: { xs: "none", sm: "flex" }, alignItems: "center" }}>
             {isLoggedIn && (
               <>
                 <Button color="inherit" onClick={() => navigate("/dashboard")}>
@@ -122,7 +122,10 @@ export default function Navbar() {
                     <Button color="inherit" onClick={() => navigate("/users")}>
                       Manage Users
                     </Button>
-                    <Button color="inherit" onClick={() => navigate("/register")}>
+                    <Button
+                      color="inherit"
+                      onClick={() => navigate("/register")}
+                    >
                       Add User
                     </Button>
                   </>
@@ -135,7 +138,7 @@ export default function Navbar() {
             )}
           </Box>
 
-          {/* Mobile Hamburger (ONLY IF LOGGED IN) */}
+          {/* Mobile Hamburger */}
           {isLoggedIn && (
             <IconButton
               color="inherit"

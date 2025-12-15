@@ -10,6 +10,7 @@ import Users from "./pages/Users";
 import PrivateRoute from "./components/PrivateRoute";
 import RoleRoute from "./components/RoleRoute";
 import { Box } from "@mui/material";
+import FloatingChat from "./components/FloatingChat";
 
 export default function App() {
   return (
@@ -39,7 +40,7 @@ export default function App() {
             } />
           </Routes>
         </Box>
-
+        <FloatingChat />
         {/* Footer */}
         <Footer />
       </Box>

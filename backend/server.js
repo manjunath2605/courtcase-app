@@ -5,6 +5,7 @@ require("dotenv").config();
 
 const authRoutes = require("./routes/auth");
 const caseRoutes = require("./routes/cases");
+const chatRoutes = require("./routes/chat");
 
 const app = express();
 app.use(cors());
@@ -19,5 +20,7 @@ mongoose.connect(process.env.MONGO_URI).then(() => console.log('MongoDB connecte
 
 app.use("/api/auth", authRoutes);
 app.use("/api/cases", caseRoutes);
+app.use("/api/chat", chatRoutes);
+
 
 app.listen(5000, () => console.log("Backend running on port 5000"));
