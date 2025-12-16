@@ -8,7 +8,8 @@ const CaseSchema = new mongoose.Schema({
   partyPhone: String,
   status: String,
   nextDate: Date,
-  remarks: String
+  remarks: String,
+  other:String
 });
 
 module.exports = mongoose.model("Case", CaseSchema);

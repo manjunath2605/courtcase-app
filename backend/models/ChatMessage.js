@@ -15,6 +15,10 @@ const chatMessageSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    edited: {
+      type: Boolean,
+      default: false,
+    },
     readBy: [
       {
         type: mongoose.Schema.Types.ObjectId,

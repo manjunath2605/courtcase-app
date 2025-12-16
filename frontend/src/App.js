@@ -11,6 +11,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import RoleRoute from "./components/RoleRoute";
 import { Box } from "@mui/material";
 import FloatingChat from "./components/FloatingChat";
+import CaseForm from "./pages/CaseForm";
 
 export default function App() {
   return (
@@ -26,8 +27,8 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-            <Route path="/cases/:id" element={<PrivateRoute><CaseDetail /></PrivateRoute>} />
-            <Route path="/add" element={<PrivateRoute><AddCase /></PrivateRoute>} />
+            <Route path="/cases/:id" element={<PrivateRoute><CaseForm key="edit" /></PrivateRoute>} />
+            <Route path="/cases/new" element={<PrivateRoute><CaseForm key="add"  /></PrivateRoute>} />
             <Route path="/users" element={
               <PrivateRoute>
                 <RoleRoute role="admin"><Users /></RoleRoute>

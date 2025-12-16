@@ -57,7 +57,7 @@ export default function Navbar() {
 
             {canEdit && (
               <ListItem>
-                <ListItemButton onClick={() => navigate("/add")}>
+                <ListItemButton onClick={() => navigate("/cases/new")}>
                   <ListItemText primary="Add Case" />
                 </ListItemButton>
               </ListItem>
@@ -112,7 +112,7 @@ export default function Navbar() {
                 </Button>
 
                 {canEdit && (
-                  <Button color="inherit" onClick={() => navigate("/add")}>
+                  <Button color="inherit" onClick={() => navigate("/cases/new")}>
                     Add Case
                   </Button>
                 )}

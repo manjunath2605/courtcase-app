@@ -226,7 +226,7 @@ export default function Dashboard() {
                     <TableCell><b>Case No</b></TableCell>
                     <TableCell><b>Court</b></TableCell>
                     <TableCell><b>Party Name</b></TableCell>
-                    <TableCell><b>Status</b></TableCell>
+                    <TableCell><b>Stage</b></TableCell>
                     <TableCell><b>Next Date</b></TableCell>
                     <TableCell><b>Remarks</b></TableCell>
                   </TableRow>
