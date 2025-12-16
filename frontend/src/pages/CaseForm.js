@@ -33,9 +33,10 @@ const COURTS = [
   "Prl. Dist & Sessions Judge - Belgavi",
   "Other"
 ];
+
 const DEFAULT_FORM = {
   caseNo: "",
-  status: "Open",
+  status: "",
   court: "Senior Civil Judge - Chikodi",
   otherCourt: "",
   nextDate: "",
@@ -44,7 +45,6 @@ const DEFAULT_FORM = {
   partyPhone: "",
   remarks: ""
 };
-
 
 export default function CaseForm() {
   const { id } = useParams();
@@ -56,25 +56,20 @@ export default function CaseForm() {
   const isViewer = role === "viewer";
   const isEditMode = Boolean(id);
 
+  const [form, setForm] = useState(DEFAULT_FORM);
   const [loading, setLoading] = useState(isEditMode);
   const [error, setError] = useState("");
 
-  /* =====================
-     FORM STATE
-  ===================== */
-const [form, setForm] = useState(DEFAULT_FORM);
-
+  /* RESET FORM WHEN ADD MODE */
   useEffect(() => {
-  if (!id) {
-    // 👈 entering ADD CASE
-    setForm(DEFAULT_FORM);
-    setError("");
-    setLoading(false);
-  }
-}, [id]);
-  /* =====================
-     FETCH CASE (EDIT)
-  ===================== */
+    if (!id) {
+      setForm(DEFAULT_FORM);
+      setError("");
+      setLoading(false);
+    }
+  }, [id]);
+
+  /* FETCH CASE (EDIT MODE) */
   useEffect(() => {
     if (!isEditMode) return;
 
@@ -107,16 +102,33 @@ const [form, setForm] = useState(DEFAULT_FORM);
     fetchCase();
   }, [id, isEditMode]);
 
-  /* =====================
-     HANDLERS
-  ===================== */
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  /* =====================
+     VALIDATION
+  ===================== */
+  const validate = () => {
+    if (!form.caseNo) return "Case Number is required";
+    if (!form.status) return "Stage is required";
+    if (!form.court) return "Court is required";
+    if (form.court === "Other" && !form.otherCourt) return "Specify Court";
+    if (!form.nextDate) return "Next Hearing Date is required";
+    if (!form.partyName) return "Party Name is required";
+    if (!form.partyPhone) return "Party Phone is required";
+    return "";
   };
 
   const submit = async (e) => {
     e.preventDefault();
     if (isViewer) return;
+
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
 
     const payload = {
       ...form,
@@ -159,23 +171,16 @@ const [form, setForm] = useState(DEFAULT_FORM);
 
   if (loading) return <Typography p={3}>Loading…</Typography>;
 
-
-
   return (
     <Box p={3}>
       <Card sx={{ maxWidth: 900, mx: "auto", borderRadius: 3 }}>
         <CardContent>
-          {/* HEADER */}
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Stack direction="row" justifyContent="space-between">
             <Typography variant="h5" fontWeight="bold">
               {isEditMode ? `Case No: ${form.caseNo}` : "Add New Case"}
             </Typography>
-
             {isEditMode && (
-              <Chip
-                label={form.status}
-                color={form.status === "Closed" ? "success" : "primary"}
-              />
+              <Chip label={form.status} color="primary" />
             )}
           </Stack>
 
@@ -183,122 +188,61 @@ const [form, setForm] = useState(DEFAULT_FORM);
 
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-          {/* FORM GRID */}
           <Grid container spacing={3}>
-            {/* ROW 1 */}
             <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Case Number"
-                name="caseNo"
-                value={form.caseNo}
-                onChange={handleChange}
-                disabled={isViewer}
-                required
-              />
+              <TextField fullWidth required label="Case Number"
+                name="caseNo" value={form.caseNo} onChange={handleChange} />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <TextField
-                select
-                fullWidth
-                label="Status"
-                name="status"
-                value={form.status}
-                onChange={handleChange}
-                disabled={isViewer}
-              >
-                <MenuItem value="Open">Open</MenuItem>
-                <MenuItem value="Closed">Closed</MenuItem>
-                <MenuItem value="Adjourned">Adjourned</MenuItem>
-              </TextField>
+              <TextField fullWidth required label="Stage"
+                name="status" value={form.status} onChange={handleChange} />
             </Grid>
 
-            {/* ROW 2 */}
             <Grid item xs={12} md={6}>
-              <TextField
-                select
-                fullWidth
-                label="Court"
-                name="court"
-                value={form.court}
-                onChange={handleChange}
-                disabled={isViewer}
-              >
-                {COURTS.map((c) => (
+              <TextField select fullWidth required label="Court"
+                name="court" value={form.court} onChange={handleChange}>
+                {COURTS.map(c => (
                   <MenuItem key={c} value={c}>{c}</MenuItem>
                 ))}
               </TextField>
             </Grid>
-        {/* ROW 3 */}
+
+            <Grid item xs={12} md={6}>
+              <TextField type="date" fullWidth required
+                label="Next Hearing Date"
+                InputLabelProps={{ shrink: true }}
+                name="nextDate" value={form.nextDate}
+                onChange={handleChange} />
+            </Grid>
+
             {form.court === "Other" && (
               <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Specify Court"
-                  name="otherCourt"
-                  value={form.otherCourt}
-                  onChange={handleChange}
-                  disabled={isViewer}
-                  required
-                />
+                <TextField fullWidth required label="Specify Court"
+                  name="otherCourt" value={form.otherCourt}
+                  onChange={handleChange} />
               </Grid>
             )}
-            <Grid item xs={12} md={6}>
-              <TextField
-                type="date"
-                fullWidth
-                label="Next Hearing Date"
-                name="nextDate"
-                InputLabelProps={{ shrink: true }}
-                value={form.nextDate}
-                onChange={handleChange}
-                disabled={isViewer}
-              />
-            </Grid>
-
-    
 
             <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Party Name"
-                name="partyName"
-                value={form.partyName}
-                onChange={handleChange}
-                disabled={isViewer}
-              />
-            </Grid>
-
-            {/* ROW 4 */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Party Email"
-                name="partyEmail"
-                type="email"
-                value={form.partyEmail}
-                onChange={handleChange}
-                disabled={isViewer}
-              />
+              <TextField fullWidth required label="Party Name"
+                name="partyName" value={form.partyName}
+                onChange={handleChange} />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Party Phone"
-                name="partyPhone"
-                type="tel"
-                value={form.partyPhone}
-                onChange={handleChange}
-                disabled={isViewer}
-                placeholder="e.g. 9876543210"
-                inputProps={{ maxLength: 15 }}
-              />
+              <TextField fullWidth label="Party Email"
+                name="partyEmail" value={form.partyEmail}
+                onChange={handleChange} />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField fullWidth required label="Party Phone"
+                name="partyPhone" value={form.partyPhone}
+                onChange={handleChange} />
             </Grid>
           </Grid>
 
-          {/* REMARKS – FULL WIDTH LAST */}
           <Box mt={4}>
             <TextField
               fullWidth
@@ -308,21 +252,11 @@ const [form, setForm] = useState(DEFAULT_FORM);
               name="remarks"
               value={form.remarks}
               onChange={handleChange}
-              disabled={isViewer}
             />
           </Box>
 
-          {/* ACTIONS */}
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={2}
-            mt={4}
-            justifyContent="space-between"
-          >
-            <Button variant="outlined" onClick={() => navigate("/dashboard")}>
-              Back
-            </Button>
-
+          <Stack direction="row" spacing={2} mt={4} justifyContent="flex-end">
+            <Button onClick={() => navigate("/dashboard")}>Cancel</Button> 
             {isEditMode && role === "admin" && (
               <Button color="error" variant="contained" onClick={deleteCase}>
                 Delete Case
