@@ -1,5 +1,5 @@
 import { Box, Button, Container, Grid, Typography } from "@mui/material";
-import businessImage from "../../assets/business-meeting-office.jpg";
+import businessImage from "../../assets/legacy.jpeg";
 import { Link } from "react-router-dom";
 
 export default function AboutSection() {
@@ -39,11 +39,11 @@ export default function AboutSection() {
             </Typography>
 
             <Typography sx={{ opacity: 0.9, mb: 2, lineHeight: 1.7 }}>
-              Mollit anim laborum duis adseu dolor in voluptate velit ess cillum.
+             We provide comprehensive legal solutions designed to protect your rights and achieve the best possible outcomes. Our experienced attorneys approach every case with careful preparation, strategic insight, and a commitment to excellence.
             </Typography>
 
             <Typography sx={{ opacity: 0.85, mb: 4, lineHeight: 1.7 }}>
-              Mollit anim laborum. Dvcuis aute serunt iruxvfg dhjkolorh.
+              From consultation to resolution, we prioritize clear communication, personalized attention, and dedicated advocacy — ensuring you feel informed, supported, and confident throughout the entire legal process.
             </Typography>
 
             <Button

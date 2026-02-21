@@ -1,4 +1,10 @@
 import React, { useState } from "react";
+import  gen1  from "../../assets/1gen.jpeg";
+import gen2  from "../../assets/2gen.jpeg";
+import  gen3  from "../../assets/3gen.jpeg";
+import office from "../../assets/office.jpeg";
+import  office2  from "../../assets/office2.jpeg";
+
 import {
   Box,
   Container,
@@ -13,25 +19,25 @@ import CloseIcon from "@mui/icons-material/Close";
 
 const GALLERY_IMAGES = [
   {
-    src: "https://images.unsplash.com/photo-1528747045269-390fe33c19f2",
+    src: gen1,
     title: "Court Proceedings",
   },
   {
-    src: "https://images.unsplash.com/photo-1589391886645-d51941baf7fb",
+    src: gen2,
     title: "Legal Consultation",
   },
 
   {
-    src: "https://images.unsplash.com/photo-1555375771-14b2a63968a9",
+    src: gen3,
     title: "Client Meeting",
   },
   {
-    src: "https://images.unsplash.com/photo-1603575448878-868a20723f5d",
-    title: "Legal Documents",
+    src: office,
+    title: "Office",
   },
   {
-    src: "https://images.unsplash.com/photo-1521791136064-7986c2920216",
-    title: "Justice & Law",
+    src: office2,
+    title: "Office",
   },
 ];
 

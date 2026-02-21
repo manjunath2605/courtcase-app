@@ -40,16 +40,16 @@ const PRACTICE_AREAS = [
       "Court appearances & hearings",
     ],
   },
-  {
-    title: "Corporate & Commercial Law",
-    icon: "https://cdn-icons-png.flaticon.com/512/942/942833.png",
-    bullets: [
-      "Company formation & registration",
-      "Corporate governance & compliance",
-      "Shareholder agreements & MOUs",
-      "Mergers, acquisitions & restructuring",
-    ],
-  },
+  // {
+  //   title: "Corporate & Commercial Law",
+  //   icon: "https://cdn-icons-png.flaticon.com/512/942/942833.png",
+  //   bullets: [
+  //     "Company formation & registration",
+  //     "Corporate governance & compliance",
+  //     "Shareholder agreements & MOUs",
+  //     "Mergers, acquisitions & restructuring",
+  //   ],
+  // },
   {
     title: "Family Law",
     icon: "https://cdn-icons-png.flaticon.com/512/942/942806.png",
@@ -70,36 +70,36 @@ const PRACTICE_AREAS = [
       "Lease & tenancy matters",
     ],
   },
-  {
-    title: "Employment & Labor Law",
-    icon: "https://cdn-icons-png.flaticon.com/512/942/942819.png",
-    bullets: [
-      "Employment contract drafting",
-      "Employer & employee advisory",
-      "Wrongful dismissal cases",
-      "Labor dispute representation",
-    ],
-  },
-  {
-    title: "Intellectual Property Law",
-    icon: "https://cdn-icons-png.flaticon.com/512/942/942848.png",
-    bullets: [
-      "Trademark & copyright registration",
-      "Patent filing & prosecution",
-      "IP licensing agreements",
-      "Infringement & enforcement actions",
-    ],
-  },
-  {
-    title: "Regulatory, Tax & Compliance",
-    icon: "https://cdn-icons-png.flaticon.com/512/942/942853.png",
-    bullets: [
-      "GST & tax advisory",
-      "Regulatory filings & notices",
-      "Corporate tax compliance",
-      "Licenses & permits",
-    ],
-  },
+  // {
+  //   title: "Employment & Labor Law",
+  //   icon: "https://cdn-icons-png.flaticon.com/512/942/942819.png",
+  //   bullets: [
+  //     "Employment contract drafting",
+  //     "Employer & employee advisory",
+  //     "Wrongful dismissal cases",
+  //     "Labor dispute representation",
+  //   ],
+  // },
+  // {
+  //   title: "Intellectual Property Law",
+  //   icon: "https://cdn-icons-png.flaticon.com/512/942/942848.png",
+  //   bullets: [
+  //     "Trademark & copyright registration",
+  //     "Patent filing & prosecution",
+  //     "IP licensing agreements",
+  //     "Infringement & enforcement actions",
+  //   ],
+  // },
+  // {
+  //   title: "Regulatory, Tax & Compliance",
+  //   icon: "https://cdn-icons-png.flaticon.com/512/942/942853.png",
+  //   bullets: [
+  //     "GST & tax advisory",
+  //     "Regulatory filings & notices",
+  //     "Corporate tax compliance",
+  //     "Licenses & permits",
+  //   ],
+  // },
 ];
 
 /* ================= COMPONENT ================= */

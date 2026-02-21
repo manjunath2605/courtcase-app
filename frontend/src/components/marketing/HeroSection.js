@@ -30,9 +30,18 @@ export default function HeroSection() {
                 fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem" },
               }}
             >
-              We Fight for Justice
+             Legacy of Advocacy — The Sadarjoshi Tradition
             </Typography>
-
+    <Typography
+            mt={3}
+            maxWidth={700}
+            sx={{ opacity: 0.9, lineHeight: 1.7 }}
+          >
+        <strong>धर्मो रक्षति रक्षितः</strong> <br />
+(Dharma protects those who protect it)
+          </Typography>
+          <br />
+          <br />
             <Typography color="text.secondary" maxWidth={520} mb={4}>
               Professional legal help from experienced attorneys.
             </Typography>

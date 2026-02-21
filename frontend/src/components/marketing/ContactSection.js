@@ -47,16 +47,27 @@ export default function ContactSection() {
                   maxWidth={480}
                   mb={2}
                 >
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  Felis diam lectus sapien. We’re happy to help you.
+  
+
+<strong>Head Office</strong><br />
+SadguruPrem,
+Indira Nagar,
+Chikodi
+
+<br /><br />
+<strong>Nipani Office Address</strong><br />
+Srivatsa,
+Ground Floor
+Omkar Apartment
+Beside G.I Bagewadi College, Panade Colony Nipani
                 </Typography>
 
-                <Stack direction="row" spacing={1}>
+                {/* <Stack direction="row" spacing={1}>
                   <IconButton color="primary"><TwitterIcon /></IconButton>
                   <IconButton color="primary"><FacebookIcon /></IconButton>
                   <IconButton color="primary"><GoogleIcon /></IconButton>
                   <IconButton color="primary"><InstagramIcon /></IconButton>
-                </Stack>
+                </Stack> */}
               </Box>
 
               {/* Map */}

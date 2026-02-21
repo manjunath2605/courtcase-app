@@ -8,6 +8,8 @@ import {
   Typography,
   Badge,
   Paper,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import ChatIcon from "@mui/icons-material/Chat";
 import CloseIcon from "@mui/icons-material/Close";
@@ -29,6 +31,12 @@ export default function FloatingChat() {
 
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
+
+  /* =====================
+     RESPONSIVE
+  ===================== */
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   /* =====================
      API
@@ -103,13 +111,24 @@ export default function FloatingChat() {
 
   return (
     <>
-      {/* CHAT ICON */}
-      <Box sx={{ position: "fixed", bottom: 90, right: 20, zIndex: 3000 }}>
+      {/* =====================
+          CHAT ICON
+      ===================== */}
+      <Box
+        sx={{
+          position: "fixed",
+          bottom: isMobile ? 16 : 90,
+          right: isMobile ? 16 : 20,
+          zIndex: 3000,
+        }}
+      >
         <IconButton
           onClick={() => setOpen(true)}
           sx={{
             bgcolor: "primary.main",
             color: "#fff",
+            width: isMobile ? 56 : "auto",
+            height: isMobile ? 56 : "auto",
             "&:hover": { bgcolor: "primary.dark" },
           }}
         >
@@ -119,16 +138,22 @@ export default function FloatingChat() {
         </IconButton>
       </Box>
 
-      {/* CHAT WINDOW */}
+      {/* =====================
+          CHAT WINDOW
+      ===================== */}
       {open && (
         <Paper
           elevation={8}
           sx={{
             position: "fixed",
-            bottom: 70,
-            right: 50,
-            width: 340,
-            height: 420,
+            bottom: isMobile ? 0 : 70,
+            right: isMobile ? 0 : 50,
+            left: isMobile ? 0 : "auto",
+
+            width: isMobile ? "100vw" : 340,
+            height: isMobile ? "100vh" : 420,
+
+            borderRadius: isMobile ? 0 : 2,
             display: "flex",
             flexDirection: "column",
             zIndex: 3000,
@@ -137,21 +162,30 @@ export default function FloatingChat() {
           {/* HEADER */}
           <Box
             sx={{
-              p: 1,
+              p: 1.5,
               bgcolor: "primary.main",
               color: "#fff",
               display: "flex",
+              alignItems: "center",
               justifyContent: "space-between",
             }}
           >
-            <Typography>Team Chat</Typography>
-            <IconButton size="small" onClick={() => setOpen(false)}>
+            <Typography fontWeight="bold">Team Chat</Typography>
+            <IconButton onClick={() => setOpen(false)}>
               <CloseIcon sx={{ color: "#fff" }} />
             </IconButton>
           </Box>
 
           {/* MESSAGES */}
-          <Box sx={{ flex: 1, p: 1, overflowY: "auto", bgcolor: "#f5f5f5" }}>
+          <Box
+            sx={{
+              flex: 1,
+              p: 1,
+              overflowY: "auto",
+              bgcolor: "#f5f5f5",
+              WebkitOverflowScrolling: "touch",
+            }}
+          >
             {messages.map((m) => {
               const myId = user?._id || user?.id;
               const isMe = m.senderId?.toString() === myId;
@@ -199,12 +233,17 @@ export default function FloatingChat() {
                             value={editText}
                             onChange={(e) => setEditText(e.target.value)}
                           />
-                          <IconButton size="small" onClick={() => saveEdit(m._id)}>
+                          <IconButton
+                            size="small"
+                            onClick={() => saveEdit(m._id)}
+                          >
                             <CheckIcon />
                           </IconButton>
                         </Box>
                       ) : (
-                        <Typography variant="body2">{m.message}</Typography>
+                        <Typography variant="body2">
+                          {m.message}
+                        </Typography>
                       )}
 
                       <Typography
@@ -221,7 +260,7 @@ export default function FloatingChat() {
                       </Typography>
                     </Box>
 
-                    {/* EDIT / DELETE ICONS */}
+                    {/* EDIT / DELETE */}
                     {canEdit && editingId !== m._id && (
                       <Box
                         sx={{
@@ -260,7 +299,14 @@ export default function FloatingChat() {
           </Box>
 
           {/* INPUT */}
-          <Box sx={{ display: "flex", p: 1 }}>
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              p: 1,
+              borderTop: "1px solid #ddd",
+            }}
+          >
             <TextField
               size="small"
               fullWidth
@@ -269,7 +315,9 @@ export default function FloatingChat() {
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             />
-            <Button onClick={sendMessage}>Send</Button>
+            <Button variant="contained" onClick={sendMessage}>
+              Send
+            </Button>
           </Box>
         </Paper>
       )}
