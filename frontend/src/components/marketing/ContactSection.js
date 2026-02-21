@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -6,10 +7,47 @@ import {
   TextField,
   Typography,
   Paper,
-  Stack
+  Stack,
+  Alert
 } from "@mui/material";
+import api from "../../api";
 
 export default function ContactSection() {
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: ""
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState({ type: "", text: "" });
+
+  const handleChange = (e) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async () => {
+    if (!form.name || !form.email || !form.phone || !form.message) {
+      setStatus({ type: "error", text: "Please fill all fields." });
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setStatus({ type: "", text: "" });
+      await api.post("/contact", form);
+      setStatus({ type: "success", text: "Thanks. We received your details." });
+      setForm({ name: "", email: "", phone: "", message: "" });
+    } catch (err) {
+      setStatus({
+        type: "error",
+        text: err.response?.data?.msg || "Failed to submit details. Please try again."
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <Box sx={{ py: { xs: 8, md: 12 }, backgroundColor: "#fff" }}>
       {/* FULL WIDTH */}
@@ -114,11 +152,15 @@ Beside G.I Bagewadi College, Panade Colony Nipani
     </Typography>
 
     <Stack spacing={3}>
-      <TextField label="First Name" fullWidth />
-      <TextField label="Email" fullWidth />
-      <TextField label="Phone Number" fullWidth />
+      {status.text && <Alert severity={status.type || "info"}>{status.text}</Alert>}
+      <TextField label="First Name" name="name" value={form.name} onChange={handleChange} fullWidth />
+      <TextField label="Email" name="email" value={form.email} onChange={handleChange} fullWidth />
+      <TextField label="Phone Number" name="phone" value={form.phone} onChange={handleChange} fullWidth />
       <TextField
         label="What do you have in mind?"
+        name="message"
+        value={form.message}
+        onChange={handleChange}
         multiline
         rows={4}
         fullWidth
@@ -127,6 +169,8 @@ Beside G.I Bagewadi College, Panade Colony Nipani
       <Button
         variant="contained"
         size="large"
+        onClick={handleSubmit}
+        disabled={submitting}
         sx={{
           mt: 1,
           py: 1.6,
@@ -138,7 +182,7 @@ Beside G.I Bagewadi College, Panade Colony Nipani
           alignSelf: "flex-start",
         }}
       >
-        Submit
+        {submitting ? "Submitting..." : "Submit"}
       </Button>
     </Stack>
   </Paper>
