@@ -20,16 +20,16 @@ import CloseIcon from "@mui/icons-material/Close";
 const GALLERY_IMAGES = [
   {
     src: gen1,
-    title: "Court Proceedings",
+    title: "Advocate Vammanrao H. Sadarjoshi",
   },
   {
     src: gen2,
-    title: "Legal Consultation",
+    title: "Advocate Sadguru Vamanrao Sadarjoshi",
   },
 
   {
     src: gen3,
-    title: "Client Meeting",
+    title: "Advocate Prasad Sadguru Sadarjoshi",
   },
   {
     src: office,
