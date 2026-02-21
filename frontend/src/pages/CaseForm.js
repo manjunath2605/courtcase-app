@@ -13,7 +13,14 @@ import {
   Divider,
   Stack,
   Alert,
-  MenuItem
+  MenuItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  TableContainer,
+  Paper
 } from "@mui/material";
 
 const COURTS = [
@@ -43,7 +50,15 @@ const DEFAULT_FORM = {
   partyName: "",
   partyEmail: "",
   partyPhone: "",
-  remarks: ""
+  remarks: "",
+  history: []
+};
+
+const formatDate = (value) => {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toISOString().slice(0, 10);
 };
 
 export default function CaseForm() {
@@ -60,7 +75,6 @@ export default function CaseForm() {
   const [loading, setLoading] = useState(isEditMode);
   const [error, setError] = useState("");
 
-  /* RESET FORM WHEN ADD MODE */
   useEffect(() => {
     if (!id) {
       setForm(DEFAULT_FORM);
@@ -69,7 +83,6 @@ export default function CaseForm() {
     }
   }, [id]);
 
-  /* FETCH CASE (EDIT MODE) */
   useEffect(() => {
     if (!isEditMode) return;
 
@@ -77,19 +90,22 @@ export default function CaseForm() {
       try {
         const res = await api.get(`/cases/${id}`);
         const data = res.data;
+        const history = Array.isArray(data.history) ? data.history : [];
 
         if (!COURTS.includes(data.court)) {
           setForm({
             ...data,
             court: "Other",
             otherCourt: data.court,
-            nextDate: data.nextDate?.slice(0, 10) || ""
+            nextDate: data.nextDate?.slice(0, 10) || "",
+            history
           });
         } else {
           setForm({
             ...data,
             otherCourt: "",
-            nextDate: data.nextDate?.slice(0, 10) || ""
+            nextDate: data.nextDate?.slice(0, 10) || "",
+            history
           });
         }
       } catch {
@@ -106,9 +122,6 @@ export default function CaseForm() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  /* =====================
-     VALIDATION
-  ===================== */
   const validate = () => {
     if (!form.caseNo) return "Case Number is required";
     if (!form.status) return "Stage is required";
@@ -135,6 +148,9 @@ export default function CaseForm() {
       court: form.court === "Other" ? form.otherCourt : form.court
     };
     delete payload.otherCourt;
+    delete payload.history;
+    delete payload._id;
+    delete payload.__v;
 
     try {
       if (isEditMode) {
@@ -156,9 +172,6 @@ export default function CaseForm() {
     navigate("/dashboard");
   };
 
-  /* =====================
-     ACCESS CONTROL
-  ===================== */
   if (!isEditMode && isViewer) {
     return (
       <Box p={4}>
@@ -169,7 +182,13 @@ export default function CaseForm() {
     );
   }
 
-  if (loading) return <Typography p={3}>Loading…</Typography>;
+  if (loading) return <Typography p={3}>Loading...</Typography>;
+
+  const history = Array.isArray(form.history) ? form.history : [];
+  const sortedHistory = [...history].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  const lastHearing = sortedHistory[0];
 
   return (
     <Box p={3}>
@@ -179,67 +198,114 @@ export default function CaseForm() {
             <Typography variant="h5" fontWeight="bold">
               {isEditMode ? `Case No: ${form.caseNo}` : "Add New Case"}
             </Typography>
-            {isEditMode && (
-              <Chip label={form.status} color="primary" />
-            )}
+            {isEditMode && <Chip label={form.status} color="primary" />}
           </Stack>
 
           <Divider sx={{ my: 3 }} />
 
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
 
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth required label="Case Number"
-                name="caseNo" value={form.caseNo} onChange={handleChange} />
+              <TextField
+                fullWidth
+                required
+                label="Case Number"
+                name="caseNo"
+                value={form.caseNo}
+                onChange={handleChange}
+              />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <TextField fullWidth required label="Stage"
-                name="status" value={form.status} onChange={handleChange} />
+              <TextField
+                fullWidth
+                required
+                label="Stage"
+                name="status"
+                value={form.status}
+                onChange={handleChange}
+              />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <TextField select fullWidth required label="Court"
-                name="court" value={form.court} onChange={handleChange}>
-                {COURTS.map(c => (
-                  <MenuItem key={c} value={c}>{c}</MenuItem>
+              <TextField
+                select
+                fullWidth
+                required
+                label="Court"
+                name="court"
+                value={form.court}
+                onChange={handleChange}
+              >
+                {COURTS.map((c) => (
+                  <MenuItem key={c} value={c}>
+                    {c}
+                  </MenuItem>
                 ))}
               </TextField>
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <TextField type="date" fullWidth required
+              <TextField
+                type="date"
+                fullWidth
+                required
                 label="Next Hearing Date"
                 InputLabelProps={{ shrink: true }}
-                name="nextDate" value={form.nextDate}
-                onChange={handleChange} />
+                name="nextDate"
+                value={form.nextDate}
+                onChange={handleChange}
+              />
             </Grid>
 
             {form.court === "Other" && (
               <Grid item xs={12} md={6}>
-                <TextField fullWidth required label="Specify Court"
-                  name="otherCourt" value={form.otherCourt}
-                  onChange={handleChange} />
+                <TextField
+                  fullWidth
+                  required
+                  label="Specify Court"
+                  name="otherCourt"
+                  value={form.otherCourt}
+                  onChange={handleChange}
+                />
               </Grid>
             )}
 
             <Grid item xs={12} md={6}>
-              <TextField fullWidth required label="Party Name"
-                name="partyName" value={form.partyName}
-                onChange={handleChange} />
+              <TextField
+                fullWidth
+                required
+                label="Party Name"
+                name="partyName"
+                value={form.partyName}
+                onChange={handleChange}
+              />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <TextField fullWidth label="Party Email"
-                name="partyEmail" value={form.partyEmail}
-                onChange={handleChange} />
+              <TextField
+                fullWidth
+                label="Party Email"
+                name="partyEmail"
+                value={form.partyEmail}
+                onChange={handleChange}
+              />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <TextField fullWidth required label="Party Phone"
-                name="partyPhone" value={form.partyPhone}
-                onChange={handleChange} />
+              <TextField
+                fullWidth
+                required
+                label="Party Phone"
+                name="partyPhone"
+                value={form.partyPhone}
+                onChange={handleChange}
+              />
             </Grid>
           </Grid>
 
@@ -255,8 +321,52 @@ export default function CaseForm() {
             />
           </Box>
 
+          {isEditMode && (
+            <Box mt={4}>
+              <Typography variant="h6" gutterBottom>
+                Hearing History
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 1.5, color: "text.secondary" }}>
+                Last Hearing: {formatDate(lastHearing?.date)} | Status: {lastHearing?.status || "-"} | Remarks: {lastHearing?.remarks || "-"}
+              </Typography>
+              <TableContainer component={Paper} variant="outlined">
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>
+                        <b>Date</b>
+                      </TableCell>
+                      <TableCell>
+                        <b>Status</b>
+                      </TableCell>
+                      <TableCell>
+                        <b>Remarks</b>
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {sortedHistory.map((h, index) => (
+                      <TableRow key={`${h.date}-${index}`}>
+                        <TableCell>{formatDate(h.date)}</TableCell>
+                        <TableCell>{h.status || "-"}</TableCell>
+                        <TableCell>{h.remarks || "-"}</TableCell>
+                      </TableRow>
+                    ))}
+                    {sortedHistory.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={3} align="center">
+                          No hearing history yet
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+          )}
+
           <Stack direction="row" spacing={2} mt={4} justifyContent="flex-end">
-            <Button onClick={() => navigate("/dashboard")}>Cancel</Button> 
+            <Button onClick={() => navigate("/dashboard")}>Cancel</Button>
             {isEditMode && role === "admin" && (
               <Button color="error" variant="contained" onClick={deleteCase}>
                 Delete Case

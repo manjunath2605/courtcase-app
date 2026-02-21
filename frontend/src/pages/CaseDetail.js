@@ -12,7 +12,14 @@ import {
   Button,
   Chip,
   Divider,
-  Stack
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  TableContainer,
+  Paper
 } from "@mui/material";
 
 export default function CaseDetail() {
@@ -30,6 +37,13 @@ const isViewer = role === "viewer";
 
   const [caseData, setCaseData] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const formatDate = (value) => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "-";
+    return date.toISOString().slice(0, 10);
+  };
 
   useEffect(() => {
     fetchCase();
@@ -66,6 +80,12 @@ const isViewer = role === "viewer";
   };
 
   if (loading) return <Typography sx={{ p: 3 }}>Loading...</Typography>;
+
+  const history = Array.isArray(caseData.history) ? caseData.history : [];
+  const sortedHistory = [...history].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  const lastHearing = sortedHistory[0];
 
   return (
     <Box sx={{ p: 3 }}>
@@ -181,6 +201,42 @@ const isViewer = role === "viewer";
               disabled={isViewer}
               onChange={e => setCaseData({ ...caseData, remarks: e.target.value })}
             />
+          </Box>
+
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Hearing History
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 1.5, color: "text.secondary" }}>
+              Last Hearing: {formatDate(lastHearing?.date)} | Status: {lastHearing?.status || "-"} | Remarks: {lastHearing?.remarks || "-"}
+            </Typography>
+            <TableContainer component={Paper} variant="outlined">
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell><b>Date</b></TableCell>
+                    <TableCell><b>Status</b></TableCell>
+                    <TableCell><b>Remarks</b></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {sortedHistory.map((h, index) => (
+                    <TableRow key={`${h.date}-${index}`}>
+                      <TableCell>{formatDate(h.date)}</TableCell>
+                      <TableCell>{h.status || "-"}</TableCell>
+                      <TableCell>{h.remarks || "-"}</TableCell>
+                    </TableRow>
+                  ))}
+                  {sortedHistory.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={3} align="center">
+                        No hearing history yet
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
           </Box>
 
           {/* Actions */}

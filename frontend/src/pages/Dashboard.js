@@ -50,6 +50,28 @@ export default function Dashboard() {
 
   const today = new Date().toISOString().slice(0, 10);
 
+  const formatDate = (value) => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "-";
+    return date.toISOString().slice(0, 10);
+  };
+
+  const getLastHearing = (caseData) => {
+    const history = Array.isArray(caseData.history) ? caseData.history : [];
+    if (history.length === 0) {
+      return {
+        date: caseData.nextDate,
+        status: caseData.status,
+        remarks: caseData.remarks
+      };
+    }
+
+    return [...history].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    )[0];
+  };
+
   const filteredCases = cases.filter((c) => {
     if (court && c.court !== court) return false;
     if (status && c.status !== status) return false;
@@ -226,14 +248,19 @@ export default function Dashboard() {
                     <TableCell><b>Case No</b></TableCell>
                     <TableCell><b>Court</b></TableCell>
                     <TableCell><b>Party Name</b></TableCell>
-                    <TableCell><b>Stage</b></TableCell>
+                    <TableCell><b>Current Stage</b></TableCell>
                     <TableCell><b>Next Date</b></TableCell>
-                    <TableCell><b>Remarks</b></TableCell>
+                    <TableCell><b>Last Hearing Date</b></TableCell>
+                    <TableCell><b>Last Hearing Status</b></TableCell>
+                    <TableCell><b>Last Hearing Remarks</b></TableCell>
                   </TableRow>
                 </TableHead>
 
                 <TableBody>
-                  {filteredCases.map((c) => (
+                  {filteredCases.map((c) => {
+                    const lastHearing = getLastHearing(c);
+
+                    return (
                     <TableRow key={c._id} hover>
                       <TableCell>
                         <Link
@@ -262,14 +289,16 @@ export default function Dashboard() {
                           size="small"
                         />
                       </TableCell>
-                      <TableCell>{c.nextDate?.slice(0, 10)}</TableCell>
-                      <TableCell>{c.remarks}</TableCell>
+                      <TableCell>{formatDate(c.nextDate)}</TableCell>
+                      <TableCell>{formatDate(lastHearing?.date)}</TableCell>
+                      <TableCell>{lastHearing?.status || "-"}</TableCell>
+                      <TableCell>{lastHearing?.remarks || "-"}</TableCell>
                     </TableRow>
-                  ))}
+                  )})}
 
                   {filteredCases.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6} align="center">
+                      <TableCell colSpan={8} align="center">
                         No cases found
                       </TableCell>
                     </TableRow>

@@ -15,13 +15,17 @@ export default function Chat() {
   const user = JSON.parse(localStorage.getItem("user"));
 
   const fetchMessages = async () => {
-    const res = await api.get("/chat");
-    setMessages(res.data);
+    try {
+      const res = await api.get("/chat");
+      setMessages(res.data);
+    } catch {
+      setMessages([]);
+    }
   };
 
   useEffect(() => {
     fetchMessages();
-    api.post("/chat/mark-read");
+    api.post("/chat/mark-read").catch(() => {});
     const interval = setInterval(fetchMessages, 4000);
     return () => clearInterval(interval);
   }, []);
@@ -32,9 +36,11 @@ export default function Chat() {
 
   const sendMessage = async () => {
     if (!text.trim()) return;
-    await api.post("/chat", { message: text });
-    setText("");
-    fetchMessages();
+    try {
+      await api.post("/chat", { message: text });
+      setText("");
+      fetchMessages();
+    } catch {}
   };
 
   return (
