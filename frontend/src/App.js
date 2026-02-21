@@ -3,8 +3,6 @@ import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import CaseDetail from "./pages/CaseDetail";
-import AddCase from "./pages/AddCase";
 import Register from "./pages/Register";
 import Users from "./pages/Users";
 import PrivateRoute from "./components/PrivateRoute";

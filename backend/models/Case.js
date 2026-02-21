@@ -1,5 +1,13 @@
 const mongoose = require("mongoose");
 
+const HistoryEntrySchema = new mongoose.Schema({
+  date: { type: Date, required: true },
+  status: { type: String, required: true },
+  remarks: { type: String, default: "" },
+  createdAt: { type: Date, default: Date.now },
+  createdBy: { type: String, default: "System" }
+});
+
 const CaseSchema = new mongoose.Schema({
   caseNo: String,
   court: String,
@@ -9,7 +17,8 @@ const CaseSchema = new mongoose.Schema({
   status: String,
   nextDate: Date,
   remarks: String,
-  other:String
+  other: String,
+  history: [HistoryEntrySchema]
 });
 
 module.exports = mongoose.model("Case", CaseSchema);

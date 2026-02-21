@@ -16,7 +16,6 @@ import {
   CircularProgress,
   Avatar,
   Paper,
-  IconButton,
   Tooltip
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";

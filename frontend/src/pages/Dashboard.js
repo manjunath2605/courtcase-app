@@ -37,7 +37,7 @@ export default function Dashboard() {
 
 
   const user = JSON.parse(localStorage.getItem("user"));
-  const role = user?.role;
+  // const role = user?.role;
 
   useEffect(() => {
     fetchCases();

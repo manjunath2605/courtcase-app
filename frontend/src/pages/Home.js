@@ -1,7 +1,7 @@
 import HeroSection from '../components/marketing/HeroSection';
 import PracticeAreaSection from '../components/marketing/PracticeAreaSection';
 import AboutSection from '../components/marketing/AboutSection';
-import TestimonialSection from '../components/marketing/TestimonialSection';
+// import TestimonialSection from '../components/marketing/TestimonialSection';
 import ContactSection from '../components/marketing/ContactSection';
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
