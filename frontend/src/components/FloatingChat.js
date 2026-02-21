@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import api from "../api";
 import {
   Box,
@@ -41,17 +41,25 @@ export default function FloatingChat() {
   /* =====================
      API
   ===================== */
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
     if (!token) return;
-    const res = await api.get("/chat");
-    setMessages(res.data);
-  };
+    try {
+      const res = await api.get("/chat");
+      setMessages(res.data);
+    } catch {
+      setMessages([]);
+    }
+  }, [token]);
 
-  const fetchUnread = async () => {
+  const fetchUnread = useCallback(async () => {
     if (!token) return;
-    const res = await api.get("/chat/unread-count");
-    setUnread(res.data.count);
-  };
+    try {
+      const res = await api.get("/chat/unread-count");
+      setUnread(res.data.count);
+    } catch {
+      setUnread(0);
+    }
+  }, [token]);
 
   /* =====================
      EFFECTS
@@ -61,13 +69,13 @@ export default function FloatingChat() {
     fetchUnread();
     const interval = setInterval(fetchUnread, 5000);
     return () => clearInterval(interval);
-  }, [token]);
+  }, [fetchUnread, token]);
 
   useEffect(() => {
     if (!token || !open) return;
     fetchMessages();
-    api.post("/chat/mark-read");
-  }, [open, token]);
+    api.post("/chat/mark-read").catch(() => {});
+  }, [fetchMessages, open, token]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });

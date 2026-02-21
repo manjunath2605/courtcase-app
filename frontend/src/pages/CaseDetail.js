@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
 
@@ -45,15 +45,15 @@ const isViewer = role === "viewer";
     return date.toISOString().slice(0, 10);
   };
 
-  useEffect(() => {
-    fetchCase();
-  }, []);
-
-  const fetchCase = async () => {
+  const fetchCase = useCallback(async () => {
     const res = await api.get(`/cases/${id}`);
     setCaseData(res.data);
     setLoading(false);
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchCase();
+  }, [fetchCase]);
 
   const updateCase = async () => {
     try {

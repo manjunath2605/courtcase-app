@@ -6,13 +6,8 @@ import {
   TextField,
   Typography,
   Paper,
-  Stack,
-  IconButton,
+  Stack
 } from "@mui/material";
-import TwitterIcon from "@mui/icons-material/Twitter";
-import FacebookIcon from "@mui/icons-material/Facebook";
-import GoogleIcon from "@mui/icons-material/Google";
-import InstagramIcon from "@mui/icons-material/Instagram";
 
 export default function ContactSection() {
   return (
@@ -81,7 +76,7 @@ Beside G.I Bagewadi College, Panade Colony Nipani
                 }}
               >
                 
-             <iframe src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3827.002962417147!2d74.5769150769578!3d16.424675943845436!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMTbCsDI1JzI4LjgiTiA3NMKwMzQnNTQuNCJF!5e0!3m2!1sen!2sus!4v1765971833098!5m2!1sen!2sus" width="600" height="450"  allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+             <iframe title="Chikodi Office Location Map" src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3827.002962417147!2d74.5769150769578!3d16.424675943845436!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMTbCsDI1JzI4LjgiTiA3NMKwMzQnNTQuNCJF!5e0!3m2!1sen!2sus!4v1765971833098!5m2!1sen!2sus" width="600" height="450" allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade"></iframe>
               </Box>
             </Box>
           </Grid>

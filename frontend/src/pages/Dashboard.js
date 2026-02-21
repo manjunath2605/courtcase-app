@@ -35,10 +35,6 @@ export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState("");
   const [search, setSearch] = useState("");
 
-
-  const user = JSON.parse(localStorage.getItem("user"));
-  // const role = user?.role;
-
   useEffect(() => {
     fetchCases();
   }, []);
