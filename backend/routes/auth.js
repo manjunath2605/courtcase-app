@@ -46,7 +46,12 @@ router.post("/login/request-otp", async (req, res) => {
     const now = Date.now();
     const cooldownMs = 60 * 1000;
     if (user.loginOtpLastSentAt && now - new Date(user.loginOtpLastSentAt).getTime() < cooldownMs) {
-      return res.status(429).json({ msg: "Please wait before requesting OTP again" });
+      const elapsedMs = now - new Date(user.loginOtpLastSentAt).getTime();
+      const retryAfter = Math.ceil((cooldownMs - elapsedMs) / 1000);
+      return res.status(429).json({
+        msg: "Please wait before requesting OTP again",
+        retryAfter
+      });
     }
 
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
@@ -93,7 +98,12 @@ router.post("/login/password/request-otp", async (req, res) => {
     const now = Date.now();
     const cooldownMs = 60 * 1000;
     if (user.loginOtpLastSentAt && now - new Date(user.loginOtpLastSentAt).getTime() < cooldownMs) {
-      return res.status(429).json({ msg: "Please wait before requesting OTP again" });
+      const elapsedMs = now - new Date(user.loginOtpLastSentAt).getTime();
+      const retryAfter = Math.ceil((cooldownMs - elapsedMs) / 1000);
+      return res.status(429).json({
+        msg: "Please wait before requesting OTP again",
+        retryAfter
+      });
     }
 
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
@@ -183,8 +193,14 @@ router.post("/client/request-otp", async (req, res) => {
 
     const existing = await ClientOtp.findOne({ email });
     const now = Date.now();
-    if (existing?.lastSentAt && now - new Date(existing.lastSentAt).getTime() < 60 * 1000) {
-      return res.status(429).json({ msg: "Please wait before requesting OTP again" });
+    const cooldownMs = 60 * 1000;
+    if (existing?.lastSentAt && now - new Date(existing.lastSentAt).getTime() < cooldownMs) {
+      const elapsedMs = now - new Date(existing.lastSentAt).getTime();
+      const retryAfter = Math.ceil((cooldownMs - elapsedMs) / 1000);
+      return res.status(429).json({
+        msg: "Please wait before requesting OTP again",
+        retryAfter
+      });
     }
 
     const otp = crypto.randomInt(100000, 1000000).toString();

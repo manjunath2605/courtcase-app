@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Button,
   TextField,
@@ -24,6 +24,15 @@ export default function Login() {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
+  const [otpCooldown, setOtpCooldown] = useState(0);
+
+  useEffect(() => {
+    if (otpCooldown <= 0) return undefined;
+    const timer = setInterval(() => {
+      setOtpCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [otpCooldown]);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -37,9 +46,14 @@ export default function Login() {
     try {
       await api.post("/auth/login/password/request-otp", form);
       setOtpRequested(true);
+      setOtpCooldown(60);
       setInfo("OTP sent to your registered email.");
     } catch (err) {
-      if (err.code === "ECONNABORTED") {
+      if (err.response?.status === 429) {
+        const retryAfter = Number(err.response?.data?.retryAfter) || 60;
+        setOtpCooldown(retryAfter);
+        setError(`Please wait ${retryAfter}s before requesting OTP again.`);
+      } else if (err.code === "ECONNABORTED") {
         setError("Request timed out. Please try again.");
       } else {
         setError(err.response?.data?.msg || "Invalid username or password");
@@ -153,13 +167,18 @@ export default function Login() {
           />
         )}
 
-        <Button type="submit" variant="contained" fullWidth disabled={loading}>
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth
+          disabled={loading || (!otpRequested && otpCooldown > 0)}
+        >
           {loading ? (
             <Stack direction="row" spacing={1} alignItems="center">
               <CircularProgress size={18} color="inherit" />
               <span>{otpRequested ? "Verifying..." : "Sending OTP..."}</span>
             </Stack>
-          ) : otpRequested ? "Verify OTP" : "Login & Send OTP"}
+          ) : otpRequested ? "Verify OTP" : otpCooldown > 0 ? `Try again in ${otpCooldown}s` : "Login & Send OTP"}
         </Button>
 
         {otpRequested && (
@@ -167,9 +186,9 @@ export default function Login() {
             fullWidth
             sx={{ mt: 1 }}
             onClick={requestSecureOtp}
-            disabled={loading}
+            disabled={loading || otpCooldown > 0}
           >
-            Resend OTP
+            {otpCooldown > 0 ? `Resend OTP in ${otpCooldown}s` : "Resend OTP"}
           </Button>
         )}
 
