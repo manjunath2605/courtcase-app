@@ -11,7 +11,7 @@ const baseURL = isLocalhost
 const api = axios.create({
   baseURL,
   // Avoid indefinite spinner when backend/email provider stalls.
-  timeout: 15000
+  timeout: 45000
 });
 
 api.interceptors.request.use(config => {

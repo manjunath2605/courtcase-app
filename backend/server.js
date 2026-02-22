@@ -11,6 +11,7 @@ const contactRoutes = require("./routes/contact");
 const app = express();
 app.use(cors());
 app.use(express.json());
+const PORT = process.env.PORT || 5000;
 
 
 // ...existing code...
@@ -25,4 +26,4 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/contact", contactRoutes);
 
 
-app.listen(5000, () => console.log("Backend running on port 5000"));
+app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
