@@ -247,8 +247,8 @@ router.put("/:id", auth, async (req, res) => {
           ]
         : [];
 
-      // Send email in background so case update response is not delayed.
-      sendEmail(to, subject, text, html, attachments).catch((emailErr) => {
+      // Await email for reliable delivery on deployed/serverless environments.
+      await sendEmail(to, subject, text, html, attachments).catch((emailErr) => {
         console.error("Failed to send next hearing update email:", emailErr);
       });
     }
