@@ -49,7 +49,13 @@ export default function ContactSection() {
   };
 
   return (
-    <Box sx={{ py: { xs: 8, md: 12 }, backgroundColor: "#fff" }}>
+    <Box
+      sx={{
+        py: { xs: 8, md: 12 },
+        background:
+          "linear-gradient(180deg, #ffffff 0%, #fbfdff 40%, #f7fbff 100%)",
+      }}
+    >
       {/* FULL WIDTH */}
       <Container maxWidth={false} disableGutters id="contact">
         <Grid container alignItems="stretch">

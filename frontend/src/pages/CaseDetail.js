@@ -28,11 +28,13 @@ export default function CaseDetail() {
 
   
 
-  const user = JSON.parse(localStorage.getItem("user"));
+const user = JSON.parse(localStorage.getItem("user"));
 const role = user?.role;
 
 const isAdmin = role === "admin";
 const isViewer = role === "viewer";
+const isClient = role === "client";
+const isReadOnly = isViewer || isClient;
 
 
   const [caseData, setCaseData] = useState(null);
@@ -123,84 +125,133 @@ const isViewer = role === "viewer";
           <Grid container spacing={3}>
             {/* Case No */}
             <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Case No"
-                value={caseData.caseNo}
-                onChange={e => setCaseData({ ...caseData, caseNo: e.target.value })}
-                disabled={isViewer}
-              />
+              {isClient ? (
+                <>
+                  <Typography variant="body2" color="text.secondary">Case No</Typography>
+                  <Typography variant="body1">{caseData.caseNo || "-"}</Typography>
+                </>
+              ) : (
+                <TextField
+                  fullWidth
+                  label="Case No"
+                  value={caseData.caseNo}
+                  onChange={e => setCaseData({ ...caseData, caseNo: e.target.value })}
+                  disabled={isReadOnly}
+                />
+              )}
             </Grid>
 
             {/* Status */}
             <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Status"
-                value={caseData.status}
-                onChange={e => setCaseData({ ...caseData, status: e.target.value })}
-                disabled={isViewer}
-              />
+              {isClient ? (
+                <>
+                  <Typography variant="body2" color="text.secondary">Status</Typography>
+                  <Typography variant="body1">{caseData.status || "-"}</Typography>
+                </>
+              ) : (
+                <TextField
+                  fullWidth
+                  label="Status"
+                  value={caseData.status}
+                  onChange={e => setCaseData({ ...caseData, status: e.target.value })}
+                  disabled={isReadOnly}
+                />
+              )}
             </Grid>
 
             {/* Court */}
             <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Court"
-                value={caseData.court}
-                onChange={e => setCaseData({ ...caseData, court: e.target.value })}
-                disabled={isViewer}
-              />
+              {isClient ? (
+                <>
+                  <Typography variant="body2" color="text.secondary">Court</Typography>
+                  <Typography variant="body1">{caseData.court || "-"}</Typography>
+                </>
+              ) : (
+                <TextField
+                  fullWidth
+                  label="Court"
+                  value={caseData.court}
+                  onChange={e => setCaseData({ ...caseData, court: e.target.value })}
+                  disabled={isReadOnly}
+                />
+              )}
             </Grid>
 
             {/* Party Name */}
             <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Party Name"
-                value={caseData.partyName}
-                onChange={e => setCaseData({ ...caseData, partyName: e.target.value })}
-                disabled={isViewer}
-              />
+              {isClient ? (
+                <>
+                  <Typography variant="body2" color="text.secondary">Party Name</Typography>
+                  <Typography variant="body1">{caseData.partyName || "-"}</Typography>
+                </>
+              ) : (
+                <TextField
+                  fullWidth
+                  label="Party Name"
+                  value={caseData.partyName}
+                  onChange={e => setCaseData({ ...caseData, partyName: e.target.value })}
+                  disabled={isReadOnly}
+                />
+              )}
             </Grid>
 
             {/* Party Email */}
             <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Party Email"
-                value={caseData.partyEmail}
-                onChange={e => setCaseData({ ...caseData, partyEmail: e.target.value })}
-                disabled={isViewer}
-              />
+              {isClient ? (
+                <>
+                  <Typography variant="body2" color="text.secondary">Party Email</Typography>
+                  <Typography variant="body1">{caseData.partyEmail || "-"}</Typography>
+                </>
+              ) : (
+                <TextField
+                  fullWidth
+                  label="Party Email"
+                  value={caseData.partyEmail}
+                  onChange={e => setCaseData({ ...caseData, partyEmail: e.target.value })}
+                  disabled={isReadOnly}
+                />
+              )}
             </Grid>
 
             {/* Next Date */}
             <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                type="date"
-                label="Next Date"
-                disabled={isViewer}
-                InputLabelProps={{ shrink: true }}
-                value={caseData.nextDate?.slice(0, 10)}
-                onChange={e => setCaseData({ ...caseData, nextDate: e.target.value })}
-              />
+              {isClient ? (
+                <>
+                  <Typography variant="body2" color="text.secondary">Next Date</Typography>
+                  <Typography variant="body1">{formatDate(caseData.nextDate)}</Typography>
+                </>
+              ) : (
+                <TextField
+                  fullWidth
+                  type="date"
+                  label="Next Date"
+                  disabled={isReadOnly}
+                  InputLabelProps={{ shrink: true }}
+                  value={caseData.nextDate?.slice(0, 10)}
+                  onChange={e => setCaseData({ ...caseData, nextDate: e.target.value })}
+                />
+              )}
             </Grid>
           </Grid>
 
           {/* Remarks as last full-width row */}
           <Box sx={{ mt: 3 }}>
-            <TextField
-              fullWidth
-              label="Remarks"
-              multiline
-              rows={5}
-              value={caseData.remarks}
-              disabled={isViewer}
-              onChange={e => setCaseData({ ...caseData, remarks: e.target.value })}
-            />
+            {isClient ? (
+              <>
+                <Typography variant="body2" color="text.secondary">Remarks</Typography>
+                <Typography variant="body1">{caseData.remarks || "-"}</Typography>
+              </>
+            ) : (
+              <TextField
+                fullWidth
+                label="Remarks"
+                multiline
+                rows={5}
+                value={caseData.remarks}
+                disabled={isReadOnly}
+                onChange={e => setCaseData({ ...caseData, remarks: e.target.value })}
+              />
+            )}
           </Box>
 
           <Box sx={{ mt: 3 }}>
@@ -208,7 +259,7 @@ const isViewer = role === "viewer";
               Hearing History
             </Typography>
             <Typography variant="body2" sx={{ mb: 1.5, color: "text.secondary" }}>
-              Last Hearing: {formatDate(lastHearing?.date)} | Status: {lastHearing?.status || "-"} | Remarks: {lastHearing?.remarks || "-"}
+              Last Hearing: {formatDate(lastHearing?.date)} | Status: {lastHearing?.status || "-"} | Court: {lastHearing?.court || caseData.court || "-"} | Remarks: {lastHearing?.remarks || "-"}
             </Typography>
             <TableContainer component={Paper} variant="outlined">
               <Table size="small">
@@ -216,6 +267,7 @@ const isViewer = role === "viewer";
                   <TableRow>
                     <TableCell><b>Date</b></TableCell>
                     <TableCell><b>Status</b></TableCell>
+                    <TableCell><b>Court</b></TableCell>
                     <TableCell><b>Remarks</b></TableCell>
                   </TableRow>
                 </TableHead>
@@ -224,12 +276,13 @@ const isViewer = role === "viewer";
                     <TableRow key={`${h.date}-${index}`}>
                       <TableCell>{formatDate(h.date)}</TableCell>
                       <TableCell>{h.status || "-"}</TableCell>
+                      <TableCell>{h.court || caseData.court || "-"}</TableCell>
                       <TableCell>{h.remarks || "-"}</TableCell>
                     </TableRow>
                   ))}
                   {sortedHistory.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={3} align="center">
+                      <TableCell colSpan={4} align="center">
                         No hearing history yet
                       </TableCell>
                     </TableRow>
@@ -256,7 +309,7 @@ const isViewer = role === "viewer";
               </Button>
             )}
 
-            {!isViewer && (
+            {!isReadOnly && (
               <Button variant="contained" onClick={updateCase} fullWidth={{ xs: true, sm: false }}>
                 Save Changes
               </Button>

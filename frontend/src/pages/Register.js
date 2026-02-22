@@ -53,15 +53,23 @@ export default function Register() {
   return (
     <Box
       sx={{
-        minHeight: "70vh",
+        minHeight: "100vh",
         display: "flex",
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
+        px: 2,
+        backgroundImage:
+          "linear-gradient(rgba(28,22,45,0.68), rgba(28,22,45,0.68)), url('https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=1800&q=80')",
+        backgroundSize: "cover",
+        backgroundPosition: "center"
       }}
     >
-      <Card sx={{ width: 420 }}>
-        <CardContent>
+      <Card sx={{ width: 420, bgcolor: "rgba(255,255,255,0.96)", boxShadow: 6 }}>
+        <CardContent sx={{ p: 4 }}>
           {/* HEADER */}
+          <Typography variant="overline" sx={{ letterSpacing: 2, color: "#4f3d72", fontWeight: 700 }}>
+            Administration
+          </Typography>
           <Typography variant="h5" fontWeight="bold" mb={1}>
             Add New User
           </Typography>

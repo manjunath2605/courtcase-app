@@ -58,94 +58,105 @@ export default function GallerySection() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ my: "50px" }} id="gallery">
-      {/* Heading */}
-      <Box mb={{ xs: 4, md: 6 }}>
-        <Typography
-          variant="overline"
-          color="primary"
-          sx={{ letterSpacing: 1 }}
-        >
-          Gallery
-        </Typography>
-
-        <Typography
-          variant="h4"
-          fontWeight={700}
-          sx={{ fontSize: { xs: "1.8rem", sm: "2.2rem" } }}
-        >
-          Moments From Our Legal Journey
-        </Typography>
-      </Box>
-
-      {/* Gallery Grid */}
-      <Grid container spacing={4}>
-        {GALLERY_IMAGES.map((img, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
-            <Box
-              onClick={() => handleOpen(img)}
-              sx={{
-                cursor: "pointer",
-                borderRadius: 2,
-                overflow: "hidden",
-                position: "relative",
-                height: 240,
-                boxShadow: 3,
-                transition: "all 0.35s ease",
-
-                "&:hover": {
-                  transform: "translateY(-6px)",
-                  boxShadow: 8,
-                },
-
-                "&::after": {
-                  content: '""',
-                  position: "absolute",
-                  inset: 0,
-                  background:
-                    "linear-gradient(180deg, transparent, rgba(0,0,0,0.6))",
-                  opacity: 0,
-                  transition: "opacity 0.3s ease",
-                },
-
-                "&:hover::after": {
-                  opacity: 1,
-                },
-              }}
+    <>
+      <Box
+        id="gallery"
+        sx={{
+          py: { xs: 7, md: 10 },
+          background:
+            "linear-gradient(180deg, #f5f8fc 0%, #edf3fa 55%, #e7eef7 100%)",
+        }}
+      >
+        <Container maxWidth="lg">
+          {/* Heading */}
+          <Box mb={{ xs: 4, md: 6 }}>
+            <Typography
+              variant="overline"
+              color="primary"
+              sx={{ letterSpacing: 1 }}
             >
-              <Box
-                component="img"
-                src={img.src}
-                alt={img.title}
-                sx={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                }}
-              />
+              Gallery
+            </Typography>
 
-              {/* Caption */}
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  position: "absolute",
-                  bottom: 16,
-                  left: 16,
-                  color: "#fff",
-                  zIndex: 2,
-                  opacity: 0,
-                  transition: "opacity 0.3s ease",
-                  ".MuiBox-root:hover &": {
-                    opacity: 1,
-                  },
-                }}
-              >
-                {img.title}
-              </Typography>
-            </Box>
+            <Typography
+              variant="h4"
+              fontWeight={700}
+              sx={{ fontSize: { xs: "1.8rem", sm: "2.2rem" } }}
+            >
+              Moments From Our Legal Journey
+            </Typography>
+          </Box>
+
+          {/* Gallery Grid */}
+          <Grid container spacing={4}>
+            {GALLERY_IMAGES.map((img, index) => (
+              <Grid item xs={12} sm={6} md={4} key={index}>
+                <Box
+                  onClick={() => handleOpen(img)}
+                  sx={{
+                    cursor: "pointer",
+                    borderRadius: 2,
+                    overflow: "hidden",
+                    position: "relative",
+                    height: 240,
+                    boxShadow: 3,
+                    transition: "all 0.35s ease",
+
+                    "&:hover": {
+                      transform: "translateY(-6px)",
+                      boxShadow: 8,
+                    },
+
+                    "&::after": {
+                      content: '""',
+                      position: "absolute",
+                      inset: 0,
+                      background:
+                        "linear-gradient(180deg, transparent, rgba(0,0,0,0.6))",
+                      opacity: 0,
+                      transition: "opacity 0.3s ease",
+                    },
+
+                    "&:hover::after": {
+                      opacity: 1,
+                    },
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={img.src}
+                    alt={img.title}
+                    sx={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+
+                  {/* Caption */}
+                  <Typography
+                    variant="subtitle1"
+                    sx={{
+                      position: "absolute",
+                      bottom: 16,
+                      left: 16,
+                      color: "#fff",
+                      zIndex: 2,
+                      opacity: 0,
+                      transition: "opacity 0.3s ease",
+                      ".MuiBox-root:hover &": {
+                        opacity: 1,
+                      },
+                    }}
+                  >
+                    {img.title}
+                  </Typography>
+                </Box>
+              </Grid>
+            ))}
           </Grid>
-        ))}
-      </Grid>
+        </Container>
+      </Box>
 
       {/* Preview Modal */}
       <Dialog open={open} onClose={handleClose} maxWidth="md">
@@ -177,6 +188,6 @@ export default function GallerySection() {
           )}
         </Box>
       </Dialog>
-    </Container>
+    </>
   );
 }

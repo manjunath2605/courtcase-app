@@ -1,7 +1,6 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api";
-
 import {
   Box,
   Card,
@@ -82,17 +81,23 @@ export default function Dashboard() {
         c.partyName?.toLowerCase().includes(q)
       );
     }
-
     return true;
   });
-
 
   const courts = [...new Set(cases.map((c) => c.court))];
   const statuses = [...new Set(cases.map((c) => c.status))];
 
+  const stats = useMemo(() => {
+    const total = cases.length;
+    const todayCases = cases.filter((c) => c.nextDate?.slice(0, 10) === today).length;
+    const openCases = cases.filter((c) => (c.status || "").toLowerCase() === "open").length;
+    const closedCases = cases.filter((c) => (c.status || "").toLowerCase() === "closed").length;
+    return { total, todayCases, openCases, closedCases };
+  }, [cases, today]);
+
   const printTable = () => {
     const printContent = printRef.current.innerHTML;
-    const win = window.open("", "", "width=900,height=650");
+    const win = window.open("", "", "width=1100,height=700");
 
     win.document.write(`
       <html>
@@ -100,13 +105,13 @@ export default function Dashboard() {
           <title>Cases List</title>
           <style>
             body { font-family: Arial; padding: 20px; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid #333; padding: 8px; }
+            table { width: 100%; border-collapse: collapse; font-size: 13px; }
+            th, td { border: 1px solid #333; padding: 8px; text-align: left; }
             th { background: #f0f0f0; }
           </style>
         </head>
         <body>
-          <h2>Court Case List</h2>
+          <h2>Court Case Dashboard Export</h2>
           ${printContent}
         </body>
       </html>
@@ -117,180 +122,212 @@ export default function Dashboard() {
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, background: "#f5f7f6" }}>
-      <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
-        <CardContent>
-          {/* HEADER */}
+    <Box
+      sx={{
+        p: { xs: 2, md: 3 },
+        minHeight: "100vh",
+        backgroundImage:
+          "radial-gradient(circle at 20% 15%, rgba(214,255,241,0.28), transparent 30%), radial-gradient(circle at 85% 10%, rgba(198,226,255,0.22), transparent 24%), linear-gradient(135deg, #0d1f2d 0%, #153b56 45%, #0a5b4f 100%)"
+      }}
+    >
+      <Card
+        sx={{
+          borderRadius: 4,
+          boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
+          bgcolor: "rgba(255,255,255,0.92)",
+          backdropFilter: "blur(10px)"
+        }}
+      >
+        <CardContent sx={{ p: { xs: 2, md: 3 } }}>
           <Box
             sx={{
               display: "flex",
               justifyContent: "space-between",
-              alignItems: "center",
-              mb: 3
+              alignItems: { xs: "flex-start", md: "center" },
+              flexDirection: { xs: "column", md: "row" },
+              gap: 2,
+              mb: 2
             }}
           >
-            <Typography variant="h5" fontWeight="bold" color="#1f4f46">
-              Cases Dashboard
-            </Typography>
-
-            <Button variant="contained" onClick={printTable}>
-              Print
+            <Box>
+              <Typography variant="overline" sx={{ letterSpacing: 2, color: "#2d5f54", fontWeight: 700 }}>
+                Operations Console
+              </Typography>
+              <Typography variant="h4" fontWeight="bold" sx={{ color: "#0d2b46" }}>
+                Court Cases Dashboard
+              </Typography>
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                Track hearings, stages, and case activity in one place
+              </Typography>
+            </Box>
+            <Button variant="contained" onClick={printTable} sx={{ borderRadius: 99, px: 3 }}>
+              Print Report
             </Button>
           </Box>
 
-          <Divider sx={{ mb: 3 }} />
+          <Divider sx={{ my: 2 }} />
 
-          {/* FILTERS */}
-          <Box sx={{ mb: 4 }}>
-            <Stack
-              direction="row"
-              spacing={2}
-              useFlexGap
-              flexWrap="wrap"
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 3 }}>
+            <Card sx={{ flex: 1, borderRadius: 3, bgcolor: "#e6f5ef", border: "1px solid #c7e7da" }}>
+              <CardContent>
+                <Typography variant="body2" color="text.secondary">Total Cases</Typography>
+                <Typography variant="h5" fontWeight="bold" color="#0c503f">{stats.total}</Typography>
+              </CardContent>
+            </Card>
+            <Card sx={{ flex: 1, borderRadius: 3, bgcolor: "#edf5ff", border: "1px solid #d2e4ff" }}>
+              <CardContent>
+                <Typography variant="body2" color="text.secondary">Today&apos;s Hearings</Typography>
+                <Typography variant="h5" fontWeight="bold" color="#184b87">{stats.todayCases}</Typography>
+              </CardContent>
+            </Card>
+            <Card sx={{ flex: 1, borderRadius: 3, bgcolor: "#fff8e9", border: "1px solid #ffe9b9" }}>
+              <CardContent>
+                <Typography variant="body2" color="text.secondary">Open Cases</Typography>
+                <Typography variant="h5" fontWeight="bold" color="#8a6512">{stats.openCases}</Typography>
+              </CardContent>
+            </Card>
+            <Card sx={{ flex: 1, borderRadius: 3, bgcolor: "#ffeef0", border: "1px solid #ffd1d7" }}>
+              <CardContent>
+                <Typography variant="body2" color="text.secondary">Closed Cases</Typography>
+                <Typography variant="h5" fontWeight="bold" color="#a42038">{stats.closedCases}</Typography>
+              </CardContent>
+            </Card>
+          </Stack>
 
-            >
+          <Card sx={{ mb: 3, borderRadius: 3, bgcolor: "#f7fbfa", border: "1px solid #e4efec" }}>
+            <CardContent>
+              <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
+                <TextField
+                  label="Search Case No / Court / Party Name"
+                  placeholder="Type to search..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  sx={{ minWidth: 270 }}
+                />
 
-              {/* 🔍 SEARCH */}
-              <TextField
-                label="Search Case No / Court / Party Name"
-                placeholder="Type to search..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                sx={{ minWidth: 260 }}
-              />
-              <FormControl sx={{ minWidth: 180 }}>
-                <InputLabel>Court</InputLabel>
-                <Select
-                  value={court}
-                  label="Court"
-                  onChange={(e) => setCourt(e.target.value)}
+                <FormControl sx={{ minWidth: 180 }}>
+                  <InputLabel>Court</InputLabel>
+                  <Select value={court} label="Court" onChange={(e) => setCourt(e.target.value)}>
+                    <MenuItem value="">All</MenuItem>
+                    {courts.map((c) => (
+                      <MenuItem key={c} value={c}>{c}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl sx={{ minWidth: 180 }}>
+                  <InputLabel>Stage</InputLabel>
+                  <Select value={status} label="Stage" onChange={(e) => setStatus(e.target.value)}>
+                    <MenuItem value="">All</MenuItem>
+                    {statuses.map((s) => (
+                      <MenuItem key={s} value={s}>{s}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <TextField
+                  type="date"
+                  label="Next Date"
+                  InputLabelProps={{ shrink: true }}
+                  value={selectedDate}
+                  onChange={(e) => {
+                    setSelectedDate(e.target.value);
+                    setTodayOnly(false);
+                  }}
+                  sx={{ minWidth: 180 }}
+                />
+
+                <Button
+                  variant={todayOnly ? "contained" : "outlined"}
+                  onClick={() => {
+                    setTodayOnly(!todayOnly);
+                    setSelectedDate("");
+                  }}
+                  sx={{ height: 56, borderRadius: 2 }}
                 >
-                  <MenuItem value="">All</MenuItem>
-                  {courts.map((c) => (
-                    <MenuItem key={c} value={c}>
-                      {c}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+                  Today&apos;s Cases
+                </Button>
 
-              <FormControl sx={{ minWidth: 180 }}>
-                <InputLabel>Stage</InputLabel>
-                <Select
-                  value={status}
-                  label="Status"
-                  onChange={(e) => setStatus(e.target.value)}
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={() => {
+                    setCourt("");
+                    setStatus("");
+                    setTodayOnly(false);
+                    setSelectedDate("");
+                    setSearch("");
+                  }}
+                  sx={{ height: 56, borderRadius: 2 }}
                 >
-                  <MenuItem value="">All</MenuItem>
-                  {statuses.map((s) => (
-                    <MenuItem key={s} value={s}>
-                      {s}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+                  Reset
+                </Button>
+              </Stack>
+            </CardContent>
+          </Card>
 
-              <TextField
-                type="date"
-                label="Next Date"
-                InputLabelProps={{ shrink: true }}
-                value={selectedDate}
-                onChange={(e) => {
-                  setSelectedDate(e.target.value);
-                  setTodayOnly(false);
-                }}
-                sx={{ minWidth: 180 }}
-              />
-
-              <Button
-                variant={todayOnly ? "contained" : "outlined"}
-                onClick={() => {
-                  setTodayOnly(!todayOnly);
-                  setSelectedDate("");
-                }}
-                sx={{ height: 56 }}
-              >
-                Today&apos;s Cases
-              </Button>
-
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={() => {
-                  setCourt("");
-                  setStatus("");
-                  setTodayOnly(false);
-                  setSelectedDate("");
-                }}
-                sx={{ height: 56 }}
-              >
-                Reset
-              </Button>
-            </Stack>
-          </Box>
-
-          {/* TABLE */}
           <TableContainer
             component={Paper}
             sx={{
-              borderRadius: 2,
-              boxShadow: 1
+              borderRadius: 3,
+              border: "1px solid #dce7e4",
+              boxShadow: "0 8px 24px rgba(16,34,53,0.08)"
             }}
           >
             <div ref={printRef}>
-              <Table sx={{ minWidth: 900 }}>
-                <TableHead sx={{ background: "#f1f5f4" }}>
-                  <TableRow>
-                    <TableCell><b>Case No</b></TableCell>
-                    <TableCell><b>Court</b></TableCell>
-                    <TableCell><b>Party Name</b></TableCell>
-                    <TableCell><b>Current Stage</b></TableCell>
-                    <TableCell><b>Next Date</b></TableCell>
-                    <TableCell><b>Last Hearing Date</b></TableCell>
-                    <TableCell><b>Last Hearing Status</b></TableCell>
-                    <TableCell><b>Last Hearing Remarks</b></TableCell>
+              <Table sx={{ minWidth: 980 }}>
+                <TableHead>
+                  <TableRow sx={{ background: "linear-gradient(90deg, #0f3d5b 0%, #135470 100%)" }}>
+                    {["Case No", "Court", "Party Name", "Current Stage", "Next Date", "Last Hearing Date", "Last Hearing Status", "Last Hearing Remarks"].map((head) => (
+                      <TableCell key={head} sx={{ color: "#fff", fontWeight: 700 }}>
+                        {head}
+                      </TableCell>
+                    ))}
                   </TableRow>
                 </TableHead>
 
                 <TableBody>
-                  {filteredCases.map((c) => {
+                  {filteredCases.map((c, idx) => {
                     const lastHearing = getLastHearing(c);
-
                     return (
-                    <TableRow key={c._id} hover>
-                      <TableCell>
-                        <Link
-                          to={`/cases/${c._id}`}
-                          style={{
-                            textDecoration: "none",
-                            color: "#1f4f46",
-                            fontWeight: 600
-                          }}
-                        >
-                          {c.caseNo}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{c.court}</TableCell>
-                      <TableCell>{c.partyName}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={c.status}
-                          color={
-                            c.status === "Open"
-                              ? "success"
-                              : c.status === "Closed"
-                                ? "error"
-                                : "warning"
-                          }
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>{formatDate(c.nextDate)}</TableCell>
-                      <TableCell>{formatDate(lastHearing?.date)}</TableCell>
-                      <TableCell>{lastHearing?.status || "-"}</TableCell>
-                      <TableCell>{lastHearing?.remarks || "-"}</TableCell>
-                    </TableRow>
-                  )})}
+                      <TableRow
+                        key={c._id}
+                        hover
+                        sx={{
+                          backgroundColor: idx % 2 === 0 ? "#ffffff" : "#f9fcfb",
+                          "&:hover": { backgroundColor: "#eef7f4" }
+                        }}
+                      >
+                        <TableCell>
+                          <Link
+                            to={`/cases/${c._id}`}
+                            style={{ textDecoration: "none", color: "#0f4f7a", fontWeight: 700 }}
+                          >
+                            {c.caseNo}
+                          </Link>
+                        </TableCell>
+                        <TableCell>{c.court}</TableCell>
+                        <TableCell>{c.partyName}</TableCell>
+                        <TableCell>
+                          <Chip
+                            label={c.status}
+                            color={
+                              c.status === "Open"
+                                ? "success"
+                                : c.status === "Closed"
+                                  ? "error"
+                                  : "warning"
+                            }
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>{formatDate(c.nextDate)}</TableCell>
+                        <TableCell>{formatDate(lastHearing?.date)}</TableCell>
+                        <TableCell>{lastHearing?.status || "-"}</TableCell>
+                        <TableCell>{lastHearing?.remarks || "-"}</TableCell>
+                      </TableRow>
+                    );
+                  })}
 
                   {filteredCases.length === 0 && (
                     <TableRow>

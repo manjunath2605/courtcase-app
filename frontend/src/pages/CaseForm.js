@@ -69,6 +69,8 @@ export default function CaseForm() {
   const role = user?.role;
 
   const isViewer = role === "viewer";
+  const isClient = role === "client";
+  const isReadOnly = isViewer || isClient;
   const isEditMode = Boolean(id);
 
   const [form, setForm] = useState(DEFAULT_FORM);
@@ -135,7 +137,7 @@ export default function CaseForm() {
 
   const submit = async (e) => {
     e.preventDefault();
-    if (isViewer) return;
+    if (isReadOnly) return;
 
     const validationError = validate();
     if (validationError) {
@@ -172,7 +174,7 @@ export default function CaseForm() {
     navigate("/dashboard");
   };
 
-  if (!isEditMode && isViewer) {
+  if (!isEditMode && isReadOnly) {
     return (
       <Box p={4}>
         <Alert severity="warning">
@@ -189,15 +191,39 @@ export default function CaseForm() {
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
   const lastHearing = sortedHistory[0];
+  const activeCourt = form.court === "Other" ? form.otherCourt : form.court;
 
   return (
-    <Box p={3}>
-      <Card sx={{ maxWidth: 900, mx: "auto", borderRadius: 3 }}>
+    <Box
+      p={3}
+      sx={{
+        minHeight: "100vh",
+        backgroundImage:
+          "linear-gradient(rgba(34,34,58,0.65), rgba(34,34,58,0.65)), url('https://images.unsplash.com/photo-1589994965851-a8f479c573a9?auto=format&fit=crop&w=1800&q=80')",
+        backgroundSize: "cover",
+        backgroundPosition: "center"
+      }}
+    >
+      <Card
+        sx={{
+          maxWidth: 900,
+          mx: "auto",
+          borderRadius: 4,
+          bgcolor: "rgba(255,255,255,0.94)",
+          backdropFilter: "blur(10px)",
+          boxShadow: "0 24px 60px rgba(0,0,0,0.30)"
+        }}
+      >
         <CardContent>
           <Stack direction="row" justifyContent="space-between">
-            <Typography variant="h5" fontWeight="bold">
+            <Box>
+              <Typography variant="overline" sx={{ color: "#3f4f6d", letterSpacing: 2, fontWeight: 700 }}>
+                Case Workspace
+              </Typography>
+              <Typography variant="h5" fontWeight="bold">
               {isEditMode ? `Case No: ${form.caseNo}` : "Add New Case"}
-            </Typography>
+              </Typography>
+            </Box>
             {isEditMode && <Chip label={form.status} color="primary" />}
           </Stack>
 
@@ -210,115 +236,166 @@ export default function CaseForm() {
           )}
 
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                required
-                label="Case Number"
-                name="caseNo"
-                value={form.caseNo}
-                onChange={handleChange}
-              />
-            </Grid>
+            {isClient ? (
+              <>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" color="text.secondary">Case Number</Typography>
+                  <Typography variant="body1">{form.caseNo || "-"}</Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" color="text.secondary">Stage</Typography>
+                  <Typography variant="body1">{form.status || "-"}</Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" color="text.secondary">Court</Typography>
+                  <Typography variant="body1">{activeCourt || "-"}</Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" color="text.secondary">Next Hearing Date</Typography>
+                  <Typography variant="body1">{formatDate(form.nextDate)}</Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" color="text.secondary">Party Name</Typography>
+                  <Typography variant="body1">{form.partyName || "-"}</Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" color="text.secondary">Party Email</Typography>
+                  <Typography variant="body1">{form.partyEmail || "-"}</Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" color="text.secondary">Party Phone</Typography>
+                  <Typography variant="body1">{form.partyPhone || "-"}</Typography>
+                </Grid>
+              </>
+            ) : (
+              <>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    required
+                    label="Case Number"
+                    name="caseNo"
+                    value={form.caseNo}
+                    onChange={handleChange}
+                    disabled={isReadOnly}
+                  />
+                </Grid>
 
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                required
-                label="Stage"
-                name="status"
-                value={form.status}
-                onChange={handleChange}
-              />
-            </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    required
+                    label="Stage"
+                    name="status"
+                    value={form.status}
+                    onChange={handleChange}
+                    disabled={isReadOnly}
+                  />
+                </Grid>
 
-            <Grid item xs={12} md={6}>
-              <TextField
-                select
-                fullWidth
-                required
-                label="Court"
-                name="court"
-                value={form.court}
-                onChange={handleChange}
-              >
-                {COURTS.map((c) => (
-                  <MenuItem key={c} value={c}>
-                    {c}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    select
+                    fullWidth
+                    required
+                    label="Court"
+                    name="court"
+                    value={form.court}
+                    onChange={handleChange}
+                    disabled={isReadOnly}
+                  >
+                    {COURTS.map((c) => (
+                      <MenuItem key={c} value={c}>
+                        {c}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
 
-            <Grid item xs={12} md={6}>
-              <TextField
-                type="date"
-                fullWidth
-                required
-                label="Next Hearing Date"
-                InputLabelProps={{ shrink: true }}
-                name="nextDate"
-                value={form.nextDate}
-                onChange={handleChange}
-              />
-            </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    type="date"
+                    fullWidth
+                    required
+                    label="Next Hearing Date"
+                    InputLabelProps={{ shrink: true }}
+                    name="nextDate"
+                    value={form.nextDate}
+                    onChange={handleChange}
+                    disabled={isReadOnly}
+                  />
+                </Grid>
 
-            {form.court === "Other" && (
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  required
-                  label="Specify Court"
-                  name="otherCourt"
-                  value={form.otherCourt}
-                  onChange={handleChange}
-                />
-              </Grid>
+                {form.court === "Other" && (
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      required
+                      label="Specify Court"
+                      name="otherCourt"
+                      value={form.otherCourt}
+                      onChange={handleChange}
+                      disabled={isReadOnly}
+                    />
+                  </Grid>
+                )}
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    required
+                    label="Party Name"
+                    name="partyName"
+                    value={form.partyName}
+                    onChange={handleChange}
+                    disabled={isReadOnly}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Party Email"
+                    name="partyEmail"
+                    value={form.partyEmail}
+                    onChange={handleChange}
+                    disabled={isReadOnly}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    required
+                    label="Party Phone"
+                    name="partyPhone"
+                    value={form.partyPhone}
+                    onChange={handleChange}
+                    disabled={isReadOnly}
+                  />
+                </Grid>
+              </>
             )}
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                required
-                label="Party Name"
-                name="partyName"
-                value={form.partyName}
-                onChange={handleChange}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Party Email"
-                name="partyEmail"
-                value={form.partyEmail}
-                onChange={handleChange}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                required
-                label="Party Phone"
-                name="partyPhone"
-                value={form.partyPhone}
-                onChange={handleChange}
-              />
-            </Grid>
           </Grid>
 
           <Box mt={4}>
-            <TextField
-              fullWidth
-              multiline
-              rows={5}
-              label="Remarks"
-              name="remarks"
-              value={form.remarks}
-              onChange={handleChange}
-            />
+            {isClient ? (
+              <>
+                <Typography variant="body2" color="text.secondary">Remarks</Typography>
+                <Typography variant="body1">{form.remarks || "-"}</Typography>
+              </>
+            ) : (
+              <TextField
+                fullWidth
+                multiline
+                rows={5}
+                label="Remarks"
+                name="remarks"
+                value={form.remarks}
+                onChange={handleChange}
+                disabled={isReadOnly}
+              />
+            )}
           </Box>
 
           {isEditMode && (
@@ -327,7 +404,7 @@ export default function CaseForm() {
                 Hearing History
               </Typography>
               <Typography variant="body2" sx={{ mb: 1.5, color: "text.secondary" }}>
-                Last Hearing: {formatDate(lastHearing?.date)} | Status: {lastHearing?.status || "-"} | Remarks: {lastHearing?.remarks || "-"}
+                Last Hearing: {formatDate(lastHearing?.date)} | Status: {lastHearing?.status || "-"} | Court: {lastHearing?.court || activeCourt || "-"} | Remarks: {lastHearing?.remarks || "-"}
               </Typography>
               <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
@@ -340,6 +417,9 @@ export default function CaseForm() {
                         <b>Status</b>
                       </TableCell>
                       <TableCell>
+                        <b>Court</b>
+                      </TableCell>
+                      <TableCell>
                         <b>Remarks</b>
                       </TableCell>
                     </TableRow>
@@ -349,12 +429,13 @@ export default function CaseForm() {
                       <TableRow key={`${h.date}-${index}`}>
                         <TableCell>{formatDate(h.date)}</TableCell>
                         <TableCell>{h.status || "-"}</TableCell>
+                        <TableCell>{h.court || activeCourt || "-"}</TableCell>
                         <TableCell>{h.remarks || "-"}</TableCell>
                       </TableRow>
                     ))}
                     {sortedHistory.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={3} align="center">
+                        <TableCell colSpan={4} align="center">
                           No hearing history yet
                         </TableCell>
                       </TableRow>
@@ -373,7 +454,7 @@ export default function CaseForm() {
               </Button>
             )}
 
-            {!isViewer && (
+            {!isReadOnly && (
               <Button variant="contained" onClick={submit}>
                 {isEditMode ? "Save Changes" : "Create Case"}
               </Button>

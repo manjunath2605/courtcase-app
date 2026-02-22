@@ -13,6 +13,9 @@ import CaseForm from "./pages/CaseForm";
 import Home from "./pages/Home";
 import AboutUs from "./pages/AboutUs";
 import ProtectedLayout from "./routes/ProtectedLayout";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import ClientLogin from "./pages/ClientLogin";
 
 export default function App() {
   return (
@@ -29,6 +32,9 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/aboutus" element={<AboutUs />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/client-login" element={<ClientLogin />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/dashboard" element={<PrivateRoute>
               <ProtectedLayout>
                 <Dashboard />

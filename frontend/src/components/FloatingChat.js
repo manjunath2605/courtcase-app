@@ -30,7 +30,8 @@ export default function FloatingChat() {
   const bottomRef = useRef();
 
   const user = JSON.parse(localStorage.getItem("user"));
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const isClient = user?.role === "client";
 
   /* =====================
      RESPONSIVE
@@ -115,7 +116,7 @@ export default function FloatingChat() {
     setMessages((prev) => prev.filter((m) => m._id !== id));
   };
 
-  if (!token) return null;
+  if (!token || isClient) return null;
 
   return (
     <>

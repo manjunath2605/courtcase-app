@@ -14,12 +14,13 @@ import {
   Divider,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
+import GavelIcon from "@mui/icons-material/Gavel";
 import { useNavigate, Link } from "react-router-dom";
 
 export default function Navbar() {
   const navigate = useNavigate();
 
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
   const isLoggedIn = Boolean(token && user);
 
@@ -30,9 +31,29 @@ export default function Navbar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const toggleDrawer = (open) => () => setDrawerOpen(open);
 
+  const navButtonSx = {
+    color: "#0b1c39",
+    fontWeight: 600,
+    borderRadius: 99,
+    px: 1.8,
+    textTransform: "none",
+    "&:hover": {
+      backgroundColor: "rgba(11,28,57,0.08)"
+    }
+  };
+
+  const goToSection = (sectionId) => {
+    if (window.location.pathname !== "/") {
+      navigate("/", { state: { scrollTo: sectionId } });
+    } else {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
     navigate("/");
     window.location.reload();
   };
@@ -41,7 +62,7 @@ export default function Navbar() {
      Mobile Drawer
   ====================== */
   const drawerContent = (
-    <Box sx={{ width: 260 }} role="presentation" onClick={toggleDrawer(false)}>
+    <Box sx={{ width: 280, background: "linear-gradient(180deg, #f7fbff 0%, #eef5ff 100%)", height: "100%" }} role="presentation" onClick={toggleDrawer(false)}>
       <List>
         {/* Public */}
         <ListItem>
@@ -54,55 +75,32 @@ export default function Navbar() {
             <ListItemText primary="About Us" />
           </ListItemButton>
         </ListItem>
-        <ListItemButton
-          onClick={() => {
-            if (window.location.pathname !== "/") {
-              navigate("/", { state: { scrollTo: "services" } });
-            } else {
-              document
-                .getElementById("services")
-                ?.scrollIntoView({ behavior: "smooth" });
-            }
-          }}
-        >
+        <ListItemButton onClick={() => goToSection("services")}>
           <ListItemText primary="Services" />
         </ListItemButton>
 
-        <ListItemButton
-          onClick={() => {
-            if (window.location.pathname !== "/") {
-              navigate("/", { state: { scrollTo: "contact" } });
-            } else {
-              document
-                .getElementById("contact")
-                ?.scrollIntoView({ behavior: "smooth" });
-            }
-          }}
-        >
+        <ListItemButton onClick={() => goToSection("contact")}>
           <ListItemText primary="Contact Us" />
         </ListItemButton>
 
-        <ListItemButton
-          onClick={() => {
-            if (window.location.pathname !== "/") {
-              navigate("/", { state: { scrollTo: "gallery" } });
-            } else {
-              document
-                .getElementById("gallery")
-                ?.scrollIntoView({ behavior: "smooth" });
-            }
-          }}
-        >
+        <ListItemButton onClick={() => goToSection("gallery")}>
           <ListItemText primary="Gallery" />
         </ListItemButton>
         <Divider />
 
         {!isLoggedIn ? (
-          <ListItem>
-            <ListItemButton onClick={() => navigate("/login")}>
-              <ListItemText primary="Login" />
-            </ListItemButton>
-          </ListItem>
+          <>
+            <ListItem>
+              <ListItemButton onClick={() => navigate("/login")}>
+                <ListItemText primary="Staff Login" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem>
+              <ListItemButton onClick={() => navigate("/client-login")}>
+                <ListItemText primary="Client Login" />
+              </ListItemButton>
+            </ListItem>
+          </>
         ) : (
           <>
             <ListItem>
@@ -153,88 +151,77 @@ export default function Navbar() {
         position="sticky"
         elevation={0}
         sx={{
-          backgroundColor: "#fff",
-          borderBottom: "1px solid #eee",
+          background: "rgba(255,255,255,0.88)",
+          backdropFilter: "blur(10px)",
+          borderBottom: "1px solid rgba(11,28,57,0.08)",
           color: "#0b1c39",
         }}
       >
-        <Toolbar sx={{ justifyContent: "space-between" }}>
+        <Toolbar sx={{ justifyContent: "space-between", minHeight: 72 }}>
           {/* Logo */}
-          <Typography
-            variant="h6"
-            fontWeight={700}
-            sx={{ cursor: "pointer" }}
+          <Box
+            sx={{ display: "flex", alignItems: "center", gap: 1, cursor: "pointer" }}
             onClick={() => navigate(isLoggedIn ? "/dashboard" : "/")}
           >
-            SVPJ
-          </Typography>
+            <Box
+              sx={{
+                width: 34,
+                height: 34,
+                borderRadius: "50%",
+                display: "grid",
+                placeItems: "center",
+                background: "linear-gradient(135deg, #0f4f78 0%, #1d7a73 100%)",
+                color: "#fff"
+              }}
+            >
+              <GavelIcon sx={{ fontSize: 18 }} />
+            </Box>
+            <Typography variant="h6" fontWeight={800} sx={{ letterSpacing: 0.5 }}>
+              SVPJ
+            </Typography>
+          </Box>
 
           {/* Desktop Menu */}
-          <Box sx={{ display: { xs: "none", md: "flex" }, gap: 2 }}>
-            <Button component={Link} to="/">Home</Button>
-            <Button component={Link} to="/aboutus">About US</Button>
-            <Button
-              onClick={() => {
-                if (window.location.pathname !== "/") {
-                  navigate("/", { state: { scrollTo: "services" } });
-                } else {
-                  document
-                    .getElementById("services")
-                    ?.scrollIntoView({ behavior: "smooth" });
-                }
-              }}
-            >Our Services</Button>
-            <Button
-              onClick={() => {
-                if (window.location.pathname !== "/") {
-                  navigate("/", { state: { scrollTo: "contact" } });
-                } else {
-                  document
-                    .getElementById("contact")
-                    ?.scrollIntoView({ behavior: "smooth" });
-                }
-              }}
-            >Contact Us</Button>
-            <Button
-              onClick={() => {
-                if (window.location.pathname !== "/") {
-                  navigate("/", { state: { scrollTo: "gallery" } });
-                } else {
-                  document
-                    .getElementById("gallery")
-                    ?.scrollIntoView({ behavior: "smooth" });
-                }
-              }}
-            >Gallery</Button>
+          <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1.2, alignItems: "center" }}>
+            <Button component={Link} to="/" sx={navButtonSx}>Home</Button>
+            <Button component={Link} to="/aboutus" sx={navButtonSx}>About Us</Button>
+            <Button onClick={() => goToSection("services")} sx={navButtonSx}>Our Services</Button>
+            <Button onClick={() => goToSection("contact")} sx={navButtonSx}>Contact Us</Button>
+            <Button onClick={() => goToSection("gallery")} sx={navButtonSx}>Gallery</Button>
 
             {!isLoggedIn ? (
-              <Button variant="contained" onClick={() => navigate("/login")}>
-                Login
-              </Button>
+              <>
+                <Button variant="contained" onClick={() => navigate("/login")} sx={{ borderRadius: 99, textTransform: "none", fontWeight: 700, px: 2.2 }}>
+                  Staff Login
+                </Button>
+                <Button variant="outlined" onClick={() => navigate("/client-login")} sx={{ borderRadius: 99, textTransform: "none", fontWeight: 700, px: 2.2 }}>
+                  Client Login
+                </Button>
+              </>
             ) : (
               <>
-                <Button onClick={() => navigate("/dashboard")}>
+                <Button onClick={() => navigate("/dashboard")} sx={navButtonSx}>
                   Dashboard
                 </Button>
 
                 {canEdit && (
-                  <Button onClick={() => navigate("/cases/new")}>
+                  <Button onClick={() => navigate("/cases/new")} sx={navButtonSx}>
                     Add Case
                   </Button>
                 )}
 
                 {isAdmin && (
                   <>
-                    <Button onClick={() => navigate("/users")}>
+                    <Button onClick={() => navigate("/users")} sx={navButtonSx}>
                       Manage Users
                     </Button>
-                    <Button onClick={() => navigate("/register")}>
+                    <Button onClick={() => navigate("/register")} sx={navButtonSx}>
                       Add User
                     </Button>
                   </>
                 )}
 
-                <Button color="error" onClick={handleLogout}>
+                <Button color="error" onClick={handleLogout} sx={{ ...navButtonSx, bgcolor: "rgba(211,47,47,0.08)" }}>
                   Logout
                 </Button>
               </>
@@ -244,7 +231,7 @@ export default function Navbar() {
           {/* Mobile Menu */}
           <IconButton
             edge="end"
-            sx={{ display: { xs: "block", md: "none" } }}
+            sx={{ display: { xs: "block", md: "none" }, bgcolor: "rgba(11,28,57,0.08)" }}
             onClick={toggleDrawer(true)}
           >
             <MenuIcon />

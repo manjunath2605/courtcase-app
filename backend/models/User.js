@@ -33,6 +33,23 @@ const UserSchema = new mongoose.Schema(
 
     resetTokenExpiry: {
       type: Date
+    },
+
+    loginOtpHash: {
+      type: String
+    },
+
+    loginOtpExpiry: {
+      type: Date
+    },
+
+    loginOtpAttempts: {
+      type: Number,
+      default: 0
+    },
+
+    loginOtpLastSentAt: {
+      type: Date
     }
   },
   { timestamps: true }

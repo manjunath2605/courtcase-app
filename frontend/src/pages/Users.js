@@ -33,12 +33,12 @@ export default function Users() {
     try {
       setLoading(true);
       const res = await api.get("/auth/users");
-      const withEditableRole = res.data.map(u => ({
+      const withEditableRole = res.data.map((u) => ({
         ...u,
         editableRole: u.role
       }));
       setUsers(withEditableRole);
-    } catch (error) {
+    } catch {
       alert("Failed to fetch users");
     } finally {
       setLoading(false);
@@ -69,7 +69,7 @@ export default function Users() {
   };
 
   const getRoleIcon = (role) => {
-    switch(role) {
+    switch (role) {
       case "admin":
         return <AdminPanelSettingsIcon sx={{ fontSize: 20 }} />;
       case "user":
@@ -82,35 +82,42 @@ export default function Users() {
   };
 
   const getRoleColor = (role) => {
-    switch(role) {
+    switch (role) {
       case "admin":
-        return { bg: "#fee", text: "#c41c3b" };
+        return { bg: "#ffeef1", text: "#b01837" };
       case "user":
-        return { bg: "#e3f2fd", text: "#1976d2" };
+        return { bg: "#e8f2ff", text: "#1f5ea8" };
       case "viewer":
-        return { bg: "#f3e5f5", text: "#7b1fa2" };
+        return { bg: "#f3ecff", text: "#5d3ea8" };
       default:
         return { bg: "#f5f5f5", text: "#666" };
     }
   };
 
   const getAvatarColor = (name) => {
-    const colors = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8"];
+    const colors = ["#184e77", "#1f7a8c", "#2a9d8f", "#5f0f40", "#8d0801"];
     return colors[name.charCodeAt(0) % colors.length];
   };
 
   return (
-    <Box sx={{ 
-      p: { xs: 2, sm: 3, md: 4 }, 
-      backgroundColor: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-      minHeight: "100vh"
-    }}>
-      {/* PAGE HEADER */}
+    <Box
+      sx={{
+        p: { xs: 2, sm: 3, md: 4 },
+        minHeight: "100vh",
+        backgroundImage:
+          "linear-gradient(rgba(24,29,36,0.72), rgba(24,29,36,0.72)), url('https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1800&q=80')",
+        backgroundSize: "cover",
+        backgroundPosition: "center"
+      }}
+    >
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h3" fontWeight="bold" mb={1} sx={{ color: "#fff" }}>
-          👥 Manage Users
+        <Typography variant="overline" sx={{ color: "rgba(255,255,255,0.75)", letterSpacing: 2, fontWeight: 700 }}>
+          Administration
         </Typography>
-        <Typography sx={{ color: "rgba(255,255,255,0.8)", fontSize: "1.1rem" }}>
+        <Typography variant="h3" fontWeight="bold" mb={1} sx={{ color: "#fff" }}>
+          Manage Users
+        </Typography>
+        <Typography sx={{ color: "rgba(255,255,255,0.8)", fontSize: "1.05rem" }}>
           Assign roles and manage user access
         </Typography>
       </Box>
@@ -120,90 +127,69 @@ export default function Users() {
           <CircularProgress sx={{ color: "#fff" }} size={50} />
         </Box>
       ) : users.length === 0 ? (
-        <Paper sx={{ p: 4, textAlign: "center", borderRadius: "12px" }}>
+        <Paper sx={{ p: 4, textAlign: "center", borderRadius: 3 }}>
           <Typography variant="h6" color="text.secondary">
             No users found
           </Typography>
         </Paper>
       ) : (
-        <Grid container spacing={3}>
+        <Grid container spacing={3} alignItems="stretch">
           {users.map((u) => {
             const roleChanged = u.editableRole !== u.role;
             const isSelf = u._id === currentUser._id;
             const roleColor = getRoleColor(u.role);
 
             return (
-              <Grid item xs={12} sm={6} lg={4} key={u._id}>
+              <Grid item xs={12} sm={6} lg={4} key={u._id} sx={{ display: "flex" }}>
                 <Card
                   sx={{
-                    height: "100%",
+                    width: "100%",
+                    minHeight: 420,
                     display: "flex",
                     flexDirection: "column",
-                    borderRadius: "16px",
-                    boxShadow: isSelf 
-                      ? "0 20px 40px rgba(0,0,0,0.3), 0 0 0 3px #fff, 0 0 20px rgba(255,215,0,0.5)" 
-                      : "0 10px 30px rgba(0,0,0,0.2)",
-                    border: isSelf ? "3px solid #FFD700" : "none",
-                    transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                    position: "relative",
-                    overflow: "hidden",
+                    borderRadius: 3,
+                    bgcolor: "rgba(255,255,255,0.94)",
+                    backdropFilter: "blur(8px)",
+                    boxShadow: isSelf
+                      ? "0 20px 45px rgba(0,0,0,0.30), 0 0 0 2px #f4c542"
+                      : "0 12px 30px rgba(0,0,0,0.22)",
+                    transition: "all .25s ease",
                     "&:hover": {
-                      transform: "translateY(-8px)",
-                      boxShadow: "0 20px 50px rgba(0,0,0,0.25)"
-                    },
-                    "&::before": isSelf ? {
-                      content: "'👤 YOU'",
-                      position: "absolute",
-                      top: "10px",
-                      right: "10px",
-                      background: "#FFD700",
-                      color: "#000",
-                      padding: "4px 12px",
-                      borderRadius: "20px",
-                      fontSize: "0.75rem",
-                      fontWeight: "bold",
-                      zIndex: 1
-                    } : {}
+                      transform: "translateY(-4px)"
+                    }
                   }}
                 >
-                  <CardContent sx={{ flex: 1, display: "flex", flexDirection: "column", pt: 3 }}>
-                    {/* USER HEADER */}
-                    <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
+                  <CardContent sx={{ display: "flex", flexDirection: "column", height: "100%", p: 2.5 }}>
+                    <Box sx={{ flexGrow: 1 }}>
+                    <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
                       <Avatar
                         sx={{
-                          width: 60,
-                          height: 60,
+                          width: 56,
+                          height: 56,
                           background: getAvatarColor(u.name),
-                          fontSize: "1.5rem",
-                          fontWeight: "bold",
-                          cursor: "pointer"
+                          fontWeight: 700
                         }}
                       >
                         {u.name.charAt(0).toUpperCase()}
                       </Avatar>
                       <Box sx={{ flex: 1 }}>
-                        <Typography fontWeight="bold" variant="h6" sx={{ mb: 0.5 }}>
+                        <Typography fontWeight="bold" variant="h6" sx={{ mb: 0.25 }}>
                           {u.name}
                         </Typography>
-                        <Typography 
-                          variant="body2" 
-                          sx={{ 
-                            color: "text.secondary",
-                            wordBreak: "break-word",
-                            fontSize: "0.9rem"
-                          }}
-                        >
+                        <Typography variant="body2" sx={{ color: "text.secondary", wordBreak: "break-word" }}>
                           {u.email}
                         </Typography>
+                        {isSelf && (
+                          <Chip label="Current Account" size="small" sx={{ mt: 1 }} />
+                        )}
                       </Box>
                     </Stack>
 
-                    <Divider sx={{ my: 2 }} />
+                    <Divider sx={{ my: 1.5 }} />
 
-                    {/* CURRENT ROLE BADGE */}
-                    <Box sx={{ mb: 3 }}>
-                      <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: "600" }}>
-                        CURRENT ROLE
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 700 }}>
+                        Current Role
                       </Typography>
                       <Box sx={{ mt: 1 }}>
                         <Chip
@@ -212,15 +198,12 @@ export default function Users() {
                           sx={{
                             background: roleColor.bg,
                             color: roleColor.text,
-                            fontWeight: "600",
-                            fontSize: "0.9rem",
-                            height: "32px"
+                            fontWeight: 700
                           }}
                         />
                       </Box>
                     </Box>
 
-                    {/* ROLE SELECTOR */}
                     {!isSelf && (
                       <>
                         <TextField
@@ -238,50 +221,32 @@ export default function Users() {
                               )
                             )
                           }
-                          sx={{ 
-                            mb: 2,
-                            "& .MuiOutlinedInput-root": {
-                              borderRadius: "10px"
-                            }
-                          }}
+                          sx={{ mb: 2 }}
                         >
-                          <MenuItem value="admin">👑 Admin</MenuItem>
-                          <MenuItem value="user">👤 User</MenuItem>
-                          <MenuItem value="viewer">👁️ Viewer (Read Only)</MenuItem>
+                          <MenuItem value="admin">Admin</MenuItem>
+                          <MenuItem value="user">User</MenuItem>
+                          <MenuItem value="viewer">Viewer (Read Only)</MenuItem>
                         </TextField>
 
                         {roleChanged && (
-                          <Alert severity="warning" sx={{ mb: 2, borderRadius: "10px" }}>
-                            <Typography variant="body2">
-                              ⚠️ Role changes pending
-                            </Typography>
+                          <Alert severity="warning" sx={{ mb: 2 }}>
+                            Role changes pending
                           </Alert>
                         )}
                       </>
                     )}
 
-                    {/* INFO MESSAGE FOR SELF */}
                     {isSelf && (
-                      <Alert 
-                        severity="info" 
-                        sx={{ 
-                          mb: 2, 
-                          borderRadius: "10px",
-                          background: "rgba(25, 118, 210, 0.1)",
-                          border: "1px solid #1976d2"
-                        }}
-                      >
-                        <Typography variant="body2" sx={{ fontWeight: "500" }}>
-                          🔒 This is your account. You cannot modify your own role.
-                        </Typography>
+                      <Alert severity="info" sx={{ mb: 2 }}>
+                        This is your account. You cannot modify your own role.
                       </Alert>
                     )}
+                    </Box>
 
-                    {/* ACTIONS */}
-                    <Stack direction="row" gap={1} sx={{ mt: "auto" }}>
+                    <Stack direction={{ xs: "column", sm: "row" }} gap={1} sx={{ mt: 1 }}>
                       {!isSelf && (
                         <Tooltip title={roleChanged ? "Save changes" : "No changes to save"}>
-                          <span style={{ flex: 1 }}>
+                          <span style={{ width: "100%" }}>
                             <Button
                               variant="contained"
                               endIcon={<SaveIcon />}
@@ -289,15 +254,7 @@ export default function Users() {
                               onClick={() => saveRole(u._id, u.editableRole)}
                               fullWidth
                               size="small"
-                              sx={{
-                                borderRadius: "10px",
-                                textTransform: "none",
-                                fontWeight: "600",
-                                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                                "&:hover": {
-                                  background: "linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)"
-                                }
-                              }}
+                              sx={{ textTransform: "none", fontWeight: 700 }}
                             >
                               Save
                             </Button>
@@ -306,7 +263,7 @@ export default function Users() {
                       )}
 
                       <Tooltip title={isSelf ? "Cannot delete your own account" : "Delete user"}>
-                        <span style={{ flex: 1 }}>
+                        <span style={{ width: "100%" }}>
                           <Button
                             variant="outlined"
                             color="error"
@@ -315,11 +272,7 @@ export default function Users() {
                             onClick={() => deleteUser(u._id)}
                             fullWidth
                             size="small"
-                            sx={{
-                              borderRadius: "10px",
-                              textTransform: "none",
-                              fontWeight: "600"
-                            }}
+                            sx={{ textTransform: "none", fontWeight: 700 }}
                           >
                             Delete
                           </Button>

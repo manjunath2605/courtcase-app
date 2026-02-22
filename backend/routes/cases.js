@@ -18,6 +18,7 @@ const buildHistoryEntry = (caseData, userId) => {
   return {
     date,
     status: caseData.status,
+    court: caseData.court || "",
     remarks: caseData.remarks || "",
     createdBy: userId || "System"
   };
@@ -26,15 +27,20 @@ const buildHistoryEntry = (caseData, userId) => {
 const isSameHistoryEntry = (a, b) =>
   normalizeDateKey(a?.date) === normalizeDateKey(b?.date) &&
   (a?.status || "") === (b?.status || "") &&
+  (a?.court || "") === (b?.court || "") &&
   (a?.remarks || "") === (b?.remarks || "");
 
 const hasHearingChange = (beforeCase, afterCase) =>
   normalizeDateKey(beforeCase?.nextDate) !== normalizeDateKey(afterCase?.nextDate) ||
   (beforeCase?.status || "") !== (afterCase?.status || "") ||
+  (beforeCase?.court || "") !== (afterCase?.court || "") ||
   (beforeCase?.remarks || "") !== (afterCase?.remarks || "");
 
 router.get("/", auth, async (req, res) => {
   const filter = {};
+  if (req.user?.role === "client") {
+    filter.partyEmail = { $regex: `^${String(req.user.email || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" };
+  }
   if (req.query.court) filter.court = req.query.court;
   if (req.query.status) filter.status = req.query.status;
   res.json(await Case.find(filter));
@@ -42,10 +48,18 @@ router.get("/", auth, async (req, res) => {
 
 router.get("/today", auth, async (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
-  res.json(await Case.find({ nextDate: today }));
+  const filter = { nextDate: today };
+  if (req.user?.role === "client") {
+    filter.partyEmail = { $regex: `^${String(req.user.email || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" };
+  }
+  res.json(await Case.find(filter));
 });
 
 router.post("/", auth, async (req, res) => {
+  if (req.user?.role === "client") {
+    return res.status(403).json({ msg: "Client is read-only" });
+  }
+
   const c = new Case(req.body);
 
   const history = Array.isArray(c.history) ? c.history : [];
@@ -64,11 +78,23 @@ router.post("/", auth, async (req, res) => {
 router.get("/:id", auth, async (req, res) => {
   const caseData = await Case.findById(req.params.id);
   if (!caseData) return res.status(404).json({ msg: "Case not found" });
+
+  if (
+    req.user?.role === "client" &&
+    String(caseData.partyEmail || "").toLowerCase() !== String(req.user.email || "").toLowerCase()
+  ) {
+    return res.status(403).json({ msg: "Not allowed" });
+  }
+
   res.json(caseData);
 });
 
 
 router.put("/:id", auth, async (req, res) => {
+  if (req.user?.role === "client") {
+    return res.status(403).json({ msg: "Client is read-only" });
+  }
+
   const existing = await Case.findById(req.params.id);
   if (!existing) return res.status(404).json({ msg: "Case not found" });
 
@@ -80,6 +106,7 @@ router.put("/:id", auth, async (req, res) => {
   const beforeUpdate = {
     nextDate: existing.nextDate,
     status: existing.status,
+    court: existing.court,
     remarks: existing.remarks
   };
 
@@ -102,6 +129,9 @@ router.put("/:id", auth, async (req, res) => {
 
 router.delete("/:id", auth, async (req, res) => {
   try {
+    if (req.user?.role === "client")
+      return res.status(403).json({ msg: "Client is read-only" });
+
     if (req.user.role !== "admin")
       return res.status(403).json({ msg: "Admin only" });
 
