@@ -251,15 +251,26 @@ router.put("/:id", auth, async (req, res) => {
         : [];
 
       // Try rich HTML email first; fallback to text-only for cloud SMTP reliability.
-      try {
-        await sendEmail(to, subject, text, html, attachments);
-      } catch (emailErr) {
-        console.error("Failed HTML hearing-update email. Retrying text-only:", emailErr);
+      const sendWithFallback = async () => {
         try {
-          await sendEmail(to, subject, text);
-        } catch (retryErr) {
-          console.error("Failed text-only hearing-update email:", retryErr);
+          await sendEmail(to, subject, text, html, attachments);
+        } catch (emailErr) {
+          console.error("Failed HTML hearing-update email. Retrying text-only:", emailErr);
+          try {
+            await sendEmail(to, subject, text);
+          } catch (retryErr) {
+            console.error("Failed text-only hearing-update email:", retryErr);
+          }
         }
+      };
+
+      // Keep save fast by default. Set AWAIT_HEARING_EMAIL=true to block on email send.
+      if (String(process.env.AWAIT_HEARING_EMAIL || "").toLowerCase() === "true") {
+        await sendWithFallback();
+      } else {
+        sendWithFallback().catch((err) => {
+          console.error("Unexpected hearing email task error:", err);
+        });
       }
     }
   }
