@@ -23,6 +23,15 @@ const hasMailConfig = () => {
   return Boolean(user && pass);
 };
 
+const getOtpEmailErrorMessage = (err) => {
+  const code = String(err?.code || "").toUpperCase();
+  if (code === "EAUTH") return "Email authentication failed. Check SMTP_USER/SMTP_PASS.";
+  if (code === "ETIMEDOUT" || code === "ECONNECTION") return "Email server timeout. Please try again.";
+  if (code === "ESOCKET") return "Email socket error. Check SMTP host/port/secure settings.";
+  if (code === "EENVELOPE") return "Email sender/recipient rejected. Check EMAIL_FROM and recipient email.";
+  return "Failed to send OTP";
+};
+
 
 // LOGIN
 router.post("/login", async (req, res) => {
@@ -81,7 +90,7 @@ router.post("/login/request-otp", async (req, res) => {
     res.json({ msg: "If account exists, OTP was sent" });
   } catch (err) {
     console.error("OTP request failed:", err);
-    res.status(500).json({ msg: "Failed to send OTP" });
+    res.status(500).json({ msg: getOtpEmailErrorMessage(err) });
   }
 });
 
@@ -132,7 +141,7 @@ router.post("/login/password/request-otp", async (req, res) => {
     res.json({ msg: "OTP sent to your email" });
   } catch (err) {
     console.error("Password+OTP request failed:", err);
-    res.status(500).json({ msg: "Failed to send OTP" });
+    res.status(500).json({ msg: getOtpEmailErrorMessage(err) });
   }
 });
 
@@ -227,7 +236,7 @@ router.post("/client/request-otp", async (req, res) => {
     res.json({ msg: "OTP sent to your email" });
   } catch (err) {
     console.error("Client OTP request failed:", err);
-    res.status(500).json({ msg: "Failed to send OTP" });
+    res.status(500).json({ msg: getOtpEmailErrorMessage(err) });
   }
 });
 
