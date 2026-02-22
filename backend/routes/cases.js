@@ -153,8 +153,10 @@ router.put("/:id", auth, async (req, res) => {
       const partyName = existing.partyName || "Client";
 
       const subject = `Case Update: Next Hearing Date Updated (Case ${caseNo})`;
-      const officeImagePath = path.resolve(__dirname, "../../frontend/src/assets/hearing_update.png");
-      const hasOfficeImage = fs.existsSync(officeImagePath);
+      const hearingImagePath = path.resolve(__dirname, "../../frontend/src/assets/hearing_update.png");
+      const hasHearingImage = fs.existsSync(hearingImagePath);
+      const bannerUrl = String(process.env.HEARING_EMAIL_BANNER_URL || "").trim();
+      const useRemoteBanner = /^https?:\/\//i.test(bannerUrl);
       const text = [
         `Dear ${partyName},`,
         "",
@@ -173,19 +175,27 @@ router.put("/:id", auth, async (req, res) => {
         "SVPG Team"
       ].join("\n");
 
-      const html = `
-        <div style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.5;">
-          ${
-            hasOfficeImage
-              ? `<div style="margin-bottom: 14px;">
+      const bannerBlock = useRemoteBanner
+        ? `<div style="margin-bottom: 14px;">
             <img
-              src="cid:office-image"
+              src="${escapeHtml(bannerUrl)}"
               alt="Your Next Hearing Update"
               style="width: 100%; max-width: 620px; height: auto; display: block; border-radius: 8px;"
             />
           </div>`
-              : ""
-          }
+        : hasHearingImage
+        ? `<div style="margin-bottom: 14px;">
+            <img
+              src="cid:hearing-update-image"
+              alt="Your Next Hearing Update"
+              style="width: 100%; max-width: 620px; height: auto; display: block; border-radius: 8px;"
+            />
+          </div>`
+        : "";
+
+      const html = `
+        <div style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.5;">
+          ${bannerBlock}
           <p>Dear ${escapeHtml(partyName)},</p>
           <p>Your next hearing date has been updated.</p>
           <p><strong>Please be available on that day.</strong></p>
@@ -227,12 +237,12 @@ router.put("/:id", auth, async (req, res) => {
         </div>
       `;
 
-      const attachments = hasOfficeImage
+      const attachments = !useRemoteBanner && hasHearingImage
         ? [
             {
-              filename: "office.jpeg",
-              path: officeImagePath,
-              cid: "office-image"
+              filename: "hearing_update.png",
+              path: hearingImagePath,
+              cid: "hearing-update-image"
             }
           ]
         : [];
