@@ -17,6 +17,12 @@ const issueTokenFromPayload = (payload) =>
 const issueToken = (user) =>
   issueTokenFromPayload({ id: user._id, role: user.role });
 
+const hasMailConfig = () => {
+  const user = process.env.SMTP_USER || process.env.EMAIL_USER;
+  const pass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+  return Boolean(user && pass);
+};
+
 
 // LOGIN
 router.post("/login", async (req, res) => {
@@ -54,7 +60,7 @@ router.post("/login/request-otp", async (req, res) => {
       });
     }
 
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    if (!hasMailConfig()) {
       return res.status(500).json({ msg: "Email service is not configured" });
     }
 
@@ -106,7 +112,7 @@ router.post("/login/password/request-otp", async (req, res) => {
       });
     }
 
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    if (!hasMailConfig()) {
       return res.status(500).json({ msg: "Email service is not configured" });
     }
 
@@ -187,7 +193,7 @@ router.post("/client/request-otp", async (req, res) => {
       return res.status(404).json({ msg: "No case found for this email" });
     }
 
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    if (!hasMailConfig()) {
       return res.status(500).json({ msg: "Email service is not configured" });
     }
 

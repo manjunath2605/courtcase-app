@@ -10,7 +10,9 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ msg: "name, email, phone, and message are required" });
     }
 
-    const emailTo = process.env.CONTACT_EMAIL_TO || process.env.EMAIL_USER;
+    const smtpUser = process.env.SMTP_USER || process.env.EMAIL_USER;
+    const smtpPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+    const emailTo = process.env.CONTACT_EMAIL_TO || smtpUser;
     let emailSent = false;
     let smsSent = false;
 
@@ -25,7 +27,7 @@ router.post("/", async (req, res) => {
       message
     ].join("\n");
 
-    if (emailTo && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    if (emailTo && smtpUser && smtpPass) {
       await sendEmail(emailTo, "New Contact Enquiry", text);
       emailSent = true;
     }
