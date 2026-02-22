@@ -2,6 +2,10 @@ const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
+  // Prevent route handlers from hanging for too long if SMTP is slow/unreachable.
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 12000,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS

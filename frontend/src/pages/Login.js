@@ -39,7 +39,11 @@ export default function Login() {
       setOtpRequested(true);
       setInfo("OTP sent to your registered email.");
     } catch (err) {
-      setError(err.response?.data?.msg || "Invalid username or password");
+      if (err.code === "ECONNABORTED") {
+        setError("Request timed out. Please try again.");
+      } else {
+        setError(err.response?.data?.msg || "Invalid username or password");
+      }
     } finally {
       setLoading(false);
     }
@@ -63,7 +67,11 @@ export default function Login() {
       sessionStorage.removeItem("user");
       navigate("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.msg || "Invalid OTP");
+      if (err.code === "ECONNABORTED") {
+        setError("Request timed out. Please try again.");
+      } else {
+        setError(err.response?.data?.msg || "Invalid OTP");
+      }
     } finally {
       setLoading(false);
     }

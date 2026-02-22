@@ -22,7 +22,11 @@ export default function ClientLogin() {
       setOtpRequested(true);
       setInfo("OTP sent to your registered case email.");
     } catch (err) {
-      setError(err.response?.data?.msg || "Failed to send OTP");
+      if (err.code === "ECONNABORTED") {
+        setError("Request timed out. Please try again.");
+      } else {
+        setError(err.response?.data?.msg || "Failed to send OTP");
+      }
     } finally {
       setLoading(false);
     }
@@ -43,7 +47,11 @@ export default function ClientLogin() {
 
       navigate("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.msg || "Invalid OTP");
+      if (err.code === "ECONNABORTED") {
+        setError("Request timed out. Please try again.");
+      } else {
+        setError(err.response?.data?.msg || "Invalid OTP");
+      }
     } finally {
       setLoading(false);
     }

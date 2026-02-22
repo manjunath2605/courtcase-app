@@ -9,7 +9,9 @@ const baseURL = isLocalhost
   : (process.env.REACT_APP_API_URL || "https://courtcase-app.onrender.com/api");
 
 const api = axios.create({
-  baseURL
+  baseURL,
+  // Avoid indefinite spinner when backend/email provider stalls.
+  timeout: 15000
 });
 
 api.interceptors.request.use(config => {
