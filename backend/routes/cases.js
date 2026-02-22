@@ -264,8 +264,13 @@ router.put("/:id", auth, async (req, res) => {
         }
       };
 
-      // Keep save fast by default. Set AWAIT_HEARING_EMAIL=true to block on email send.
-      if (String(process.env.AWAIT_HEARING_EMAIL || "").toLowerCase() === "true") {
+      // In production, await by default (serverless/background tasks may be dropped).
+      // Override with AWAIT_HEARING_EMAIL=true|false when needed.
+      const awaitEnv = String(process.env.AWAIT_HEARING_EMAIL || "").toLowerCase();
+      const shouldAwait =
+        awaitEnv === "true" || (awaitEnv !== "false" && process.env.NODE_ENV === "production");
+
+      if (shouldAwait) {
         await sendWithFallback();
       } else {
         sendWithFallback().catch((err) => {
