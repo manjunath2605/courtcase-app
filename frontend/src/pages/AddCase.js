@@ -16,7 +16,9 @@ import { useNavigate } from "react-router-dom";
 export default function AddCase() {
     const navigate = useNavigate();
 
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user =
+        JSON.parse(localStorage.getItem("user")) ||
+        JSON.parse(sessionStorage.getItem("user"));
     const role = user?.role;
     const isViewer = role === "viewer";
 

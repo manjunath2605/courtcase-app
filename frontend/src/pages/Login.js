@@ -1,7 +1,18 @@
 import { useState } from "react";
-import { Button, TextField, Box, Typography, Checkbox, FormControlLabel, Stack, CircularProgress } from "@mui/material";
+import {
+  Button,
+  TextField,
+  Box,
+  Typography,
+  Stack,
+  CircularProgress,
+  IconButton,
+  InputAdornment,
+} from "@mui/material";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -9,7 +20,7 @@ export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [otp, setOtp] = useState("");
   const [otpRequested, setOtpRequested] = useState(false);
-  const [remember, setRemember] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
@@ -46,14 +57,10 @@ export default function Login() {
         otp
       });
 
-      if (remember) {
-        localStorage.setItem("token", res.data.token);
-      } else {
-        localStorage.removeItem("token");
-        sessionStorage.setItem("token", res.data.token);
-      }
-
+      localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("user");
       navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.msg || "Invalid OTP");
@@ -104,13 +111,26 @@ export default function Login() {
         {!otpRequested ? (
           <TextField
             label="Password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             name="password"
             fullWidth
             margin="normal"
             onChange={handleChange}
             required
             disabled={loading}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    edge="end"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
         ) : (
           <TextField
@@ -124,13 +144,6 @@ export default function Login() {
             disabled={loading}
           />
         )}
-
-        <FormControlLabel
-          control={
-            <Checkbox checked={remember} onChange={e => setRemember(e.target.checked)} />
-          }
-          label="Remember me"
-        />
 
         <Button type="submit" variant="contained" fullWidth disabled={loading}>
           {loading ? (

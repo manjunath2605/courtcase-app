@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, Button, TextField, Typography, Stack, CircularProgress, Checkbox, FormControlLabel } from "@mui/material";
+import { Box, Button, TextField, Typography, Stack, CircularProgress } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 
@@ -8,7 +8,6 @@ export default function ClientLogin() {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [otpRequested, setOtpRequested] = useState(false);
-  const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
@@ -37,13 +36,10 @@ export default function ClientLogin() {
     try {
       const res = await api.post("/auth/client/verify-otp", { email, otp });
 
-      if (remember) {
-        localStorage.setItem("token", res.data.token);
-      } else {
-        localStorage.removeItem("token");
-        sessionStorage.setItem("token", res.data.token);
-      }
+      localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("user");
 
       navigate("/dashboard");
     } catch (err) {
@@ -81,11 +77,6 @@ export default function ClientLogin() {
             disabled={loading}
           />
         )}
-
-        <FormControlLabel
-          control={<Checkbox checked={remember} onChange={(e) => setRemember(e.target.checked)} />}
-          label="Remember me"
-        />
 
         <Button type="submit" variant="contained" fullWidth disabled={loading}>
           {loading ? (

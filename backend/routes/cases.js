@@ -1,6 +1,9 @@
 const router = require("express").Router();
 const Case = require("../models/Case");
 const auth = require("../middleware/auth");
+const sendEmail = require("../utils/sendEmail");
+const fs = require("fs");
+const path = require("path");
 
 const normalizeDateKey = (value) => {
   if (!value) return "";
@@ -35,6 +38,14 @@ const hasHearingChange = (beforeCase, afterCase) =>
   (beforeCase?.status || "") !== (afterCase?.status || "") ||
   (beforeCase?.court || "") !== (afterCase?.court || "") ||
   (beforeCase?.remarks || "") !== (afterCase?.remarks || "");
+
+const escapeHtml = (value) =>
+  String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 
 router.get("/", auth, async (req, res) => {
   const filter = {};
@@ -116,6 +127,8 @@ router.put("/:id", auth, async (req, res) => {
   const entry = buildHistoryEntry(existing, req.user?.id);
   const latest = history[history.length - 1];
   const hearingChanged = hasHearingChange(beforeUpdate, existing);
+  const nextDateChanged =
+    normalizeDateKey(beforeUpdate?.nextDate) !== normalizeDateKey(existing?.nextDate);
   const shouldBootstrapHistory = history.length === 0 && Boolean(entry);
 
   if (entry && (hearingChanged || shouldBootstrapHistory) && !isSameHistoryEntry(latest, entry)) {
@@ -124,6 +137,115 @@ router.put("/:id", auth, async (req, res) => {
 
   existing.history = history;
   await existing.save();
+
+  // Notify client only when next hearing date changes.
+  if (nextDateChanged && existing.partyEmail) {
+    const to = String(existing.partyEmail || "").trim();
+    const hasValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to);
+
+    if (hasValidEmail) {
+      const oldDate = normalizeDateKey(beforeUpdate.nextDate) || "-";
+      const nextDate = normalizeDateKey(existing.nextDate) || "-";
+      const caseNo = existing.caseNo || "-";
+      const status = existing.status || "-";
+      const remarks = existing.remarks || "-";
+      const court = existing.court || "-";
+      const partyName = existing.partyName || "Client";
+
+      const subject = `Case Update: Next Hearing Date Updated (Case ${caseNo})`;
+      const officeImagePath = path.resolve(__dirname, "../../frontend/src/assets/hearing_update.png");
+      const hasOfficeImage = fs.existsSync(officeImagePath);
+      const text = [
+        `Dear ${partyName},`,
+        "",
+        "Your next hearing date has been updated.",
+        "Please be available on that day.",
+        "",
+        "Case Details:",
+        `Case No: ${caseNo}`,
+        `Old Hearing Date: ${oldDate}`,
+        `Next Hearing Date: ${nextDate}`,
+        `Status: ${status}`,
+        `Remarks: ${remarks}`,
+        `Court: ${court}`,
+        "",
+        "Regards,",
+        "SVPG Team"
+      ].join("\n");
+
+      const html = `
+        <div style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.5;">
+          ${
+            hasOfficeImage
+              ? `<div style="margin-bottom: 14px;">
+            <img
+              src="cid:office-image"
+              alt="Your Next Hearing Update"
+              style="width: 100%; max-width: 620px; height: auto; display: block; border-radius: 8px;"
+            />
+          </div>`
+              : ""
+          }
+          <p>Dear ${escapeHtml(partyName)},</p>
+          <p>Your next hearing date has been updated.</p>
+          <p><strong>Please be available on that day.</strong></p>
+          <table style="border-collapse: collapse; width: 100%; max-width: 620px;">
+            <thead>
+              <tr style="background: #f3f4f6;">
+                <th style="border: 1px solid #d1d5db; text-align: left; padding: 8px;">Field</th>
+                <th style="border: 1px solid #d1d5db; text-align: left; padding: 8px;">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="border: 1px solid #d1d5db; padding: 8px;">Case No.</td>
+                <td style="border: 1px solid #d1d5db; padding: 8px;">${escapeHtml(caseNo)}</td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #d1d5db; padding: 8px;">Old Hearing Date</td>
+                <td style="border: 1px solid #d1d5db; padding: 8px;">${escapeHtml(oldDate)}</td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #d1d5db; padding: 8px;">Next Hearing Date</td>
+                <td style="border: 1px solid #d1d5db; padding: 8px;">${escapeHtml(nextDate)}</td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #d1d5db; padding: 8px;">Status</td>
+                <td style="border: 1px solid #d1d5db; padding: 8px;">${escapeHtml(status)}</td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #d1d5db; padding: 8px;">Remarks</td>
+                <td style="border: 1px solid #d1d5db; padding: 8px;">${escapeHtml(remarks)}</td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #d1d5db; padding: 8px;">Court</td>
+                <td style="border: 1px solid #d1d5db; padding: 8px;">${escapeHtml(court)}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="margin-top: 14px;">Regards,<br/>SVPJ Team</p>
+        </div>
+      `;
+
+      try {
+        const attachments = hasOfficeImage
+          ? [
+              {
+                filename: "office.jpeg",
+                path: officeImagePath,
+                cid: "office-image"
+              }
+            ]
+          : [];
+
+        await sendEmail(to, subject, text, html, attachments);
+      } catch (emailErr) {
+        // Do not fail case update on email error.
+        console.error("Failed to send next hearing update email:", emailErr);
+      }
+    }
+  }
+
   res.json(existing);
 });
 

@@ -21,7 +21,9 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user =
+    JSON.parse(localStorage.getItem("user")) ||
+    JSON.parse(sessionStorage.getItem("user"));
   const isLoggedIn = Boolean(token && user);
 
   const role = user?.role;
@@ -53,6 +55,7 @@ export default function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    sessionStorage.removeItem("user");
     sessionStorage.removeItem("token");
     navigate("/");
     window.location.reload();

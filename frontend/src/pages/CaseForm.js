@@ -20,7 +20,8 @@ import {
   TableHead,
   TableRow,
   TableContainer,
-  Paper
+  Paper,
+  CircularProgress
 } from "@mui/material";
 
 const COURTS = [
@@ -65,7 +66,9 @@ export default function CaseForm() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user =
+    JSON.parse(localStorage.getItem("user")) ||
+    JSON.parse(sessionStorage.getItem("user"));
   const role = user?.role;
 
   const isViewer = role === "viewer";
@@ -75,6 +78,7 @@ export default function CaseForm() {
 
   const [form, setForm] = useState(DEFAULT_FORM);
   const [loading, setLoading] = useState(isEditMode);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -155,6 +159,7 @@ export default function CaseForm() {
     delete payload.__v;
 
     try {
+      setSaving(true);
       if (isEditMode) {
         await api.put(`/cases/${id}`, payload);
         alert("Case updated successfully");
@@ -165,6 +170,8 @@ export default function CaseForm() {
       navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.msg || "Operation failed");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -455,8 +462,13 @@ export default function CaseForm() {
             )}
 
             {!isReadOnly && (
-              <Button variant="contained" onClick={submit}>
-                {isEditMode ? "Save Changes" : "Create Case"}
+              <Button variant="contained" onClick={submit} disabled={saving}>
+                {saving ? (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <CircularProgress size={18} color="inherit" />
+                    <span>Saving...</span>
+                  </Box>
+                ) : isEditMode ? "Save Changes" : "Create Case"}
               </Button>
             )}
           </Stack>

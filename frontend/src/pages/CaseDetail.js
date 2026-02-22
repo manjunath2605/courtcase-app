@@ -19,7 +19,8 @@ import {
   TableHead,
   TableRow,
   TableContainer,
-  Paper
+  Paper,
+  CircularProgress
 } from "@mui/material";
 
 export default function CaseDetail() {
@@ -28,7 +29,9 @@ export default function CaseDetail() {
 
   
 
-const user = JSON.parse(localStorage.getItem("user"));
+const user =
+  JSON.parse(localStorage.getItem("user")) ||
+  JSON.parse(sessionStorage.getItem("user"));
 const role = user?.role;
 
 const isAdmin = role === "admin";
@@ -39,6 +42,7 @@ const isReadOnly = isViewer || isClient;
 
   const [caseData, setCaseData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const formatDate = (value) => {
     if (!value) return "-";
@@ -59,12 +63,15 @@ const isReadOnly = isViewer || isClient;
 
   const updateCase = async () => {
     try {
+      setSaving(true);
       await api.put(`/cases/${id}`, caseData);
       alert("Case updated successfully");
       fetchCase();
     } catch (err) {
       console.error(err);
       alert("Failed to update case");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -310,8 +317,15 @@ const isReadOnly = isViewer || isClient;
             )}
 
             {!isReadOnly && (
-              <Button variant="contained" onClick={updateCase} fullWidth={{ xs: true, sm: false }}>
-                Save Changes
+              <Button variant="contained" onClick={updateCase} fullWidth={{ xs: true, sm: false }} disabled={saving}>
+                {saving ? (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <CircularProgress size={18} color="inherit" />
+                    <span>Saving...</span>
+                  </Box>
+                ) : (
+                  "Save Changes"
+                )}
               </Button>
             )}
           </Stack>

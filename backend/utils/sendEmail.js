@@ -8,11 +8,13 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-module.exports = async (to, subject, message) => {
+module.exports = async (to, subject, message, html, attachments = []) => {
   await transporter.sendMail({
     from: `"Court Case App" <${process.env.EMAIL_USER}>`,
     to,
     subject,
-    text: message
+    text: message,
+    ...(html ? { html } : {}),
+    ...(attachments.length ? { attachments } : {})
   });
 };

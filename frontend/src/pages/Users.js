@@ -27,7 +27,9 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 export default function Users() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const currentUser = JSON.parse(localStorage.getItem("user"));
+  const currentUser =
+    JSON.parse(localStorage.getItem("user")) ||
+    JSON.parse(sessionStorage.getItem("user"));
 
   const fetchUsers = async () => {
     try {
