@@ -10,8 +10,8 @@ export default function ForgotPassword() {
     try {
       await api.post("/auth/forgot-password", { email });
       setMsg("If the email exists, reset link has been sent.");
-    } catch {
-      setMsg("Something went wrong");
+    } catch (err) {
+      setMsg(err.response?.data?.msg || "Something went wrong");
     }
   };
 

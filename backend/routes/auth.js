@@ -351,24 +351,36 @@ router.put("/users/:id/role", auth, async (req, res) => {
 });
 
 router.post("/forgot-password", async (req, res) => {
-  const user = await User.findOne({ email: req.body.email });
-  if (!user) return res.sendStatus(200);
+  try {
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    if (!email) return res.status(400).json({ msg: "Email is required" });
 
-  const token = crypto.randomBytes(32).toString("hex");
+    const user = await User.findOne({ email });
+    if (!user) return res.sendStatus(200);
 
-  user.resetToken = token;
-  user.resetTokenExpiry = Date.now() + 3600000; // 1 hour
-  await user.save();
+    if (!hasMailConfig()) {
+      return res.status(500).json({ msg: "Email service is not configured" });
+    }
 
-  const link = `http://localhost:3000/reset-password/${token}`;
+    const token = crypto.randomBytes(32).toString("hex");
+    user.resetToken = token;
+    user.resetTokenExpiry = Date.now() + 3600000; // 1 hour
+    await user.save();
 
-  await sendEmail(
-    user.email,
-    "Password Reset",
-    `Reset password link: ${link}`
-  );
+    const appBaseUrl = (process.env.APP_BASE_URL || "http://localhost:3000").replace(/\/+$/, "");
+    const link = `${appBaseUrl}/reset-password/${token}`;
 
-  res.json({ msg: "Reset link sent" });
+    await sendEmail(
+      user.email,
+      "Password Reset",
+      `Reset password link: ${link}`
+    );
+
+    res.json({ msg: "Reset link sent" });
+  } catch (err) {
+    console.error("Forgot password failed:", err);
+    res.status(500).json({ msg: getOtpEmailErrorMessage(err) });
+  }
 });
 
 router.post("/reset-password/:token", async (req, res) => {
