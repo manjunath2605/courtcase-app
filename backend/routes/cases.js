@@ -155,7 +155,10 @@ router.put("/:id", auth, async (req, res) => {
       const subject = `Case Update: Next Hearing Date Updated (Case ${caseNo})`;
       const hearingImagePath = path.resolve(__dirname, "../../frontend/src/assets/hearing_update.png");
       const hasHearingImage = fs.existsSync(hearingImagePath);
-      const bannerUrl = String(process.env.HEARING_EMAIL_BANNER_URL || "").trim();
+      const bannerUrl = String(
+        process.env.HEARING_EMAIL_BANNER_URL ||
+          "https://dummyimage.com/1200x300/0f4f78/ffffff.png&text=Your+Next+Hearing+Update"
+      ).trim();
       const useRemoteBanner = /^https?:\/\//i.test(bannerUrl);
       const text = [
         `Dear ${partyName},`,
@@ -247,10 +250,17 @@ router.put("/:id", auth, async (req, res) => {
           ]
         : [];
 
-      // Await email for reliable delivery on deployed/serverless environments.
-      await sendEmail(to, subject, text, html, attachments).catch((emailErr) => {
-        console.error("Failed to send next hearing update email:", emailErr);
-      });
+      // Try rich HTML email first; fallback to text-only for cloud SMTP reliability.
+      try {
+        await sendEmail(to, subject, text, html, attachments);
+      } catch (emailErr) {
+        console.error("Failed HTML hearing-update email. Retrying text-only:", emailErr);
+        try {
+          await sendEmail(to, subject, text);
+        } catch (retryErr) {
+          console.error("Failed text-only hearing-update email:", retryErr);
+        }
+      }
     }
   }
 
