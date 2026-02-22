@@ -227,22 +227,20 @@ router.put("/:id", auth, async (req, res) => {
         </div>
       `;
 
-      try {
-        const attachments = hasOfficeImage
-          ? [
-              {
-                filename: "office.jpeg",
-                path: officeImagePath,
-                cid: "office-image"
-              }
-            ]
-          : [];
+      const attachments = hasOfficeImage
+        ? [
+            {
+              filename: "office.jpeg",
+              path: officeImagePath,
+              cid: "office-image"
+            }
+          ]
+        : [];
 
-        await sendEmail(to, subject, text, html, attachments);
-      } catch (emailErr) {
-        // Do not fail case update on email error.
+      // Send email in background so case update response is not delayed.
+      sendEmail(to, subject, text, html, attachments).catch((emailErr) => {
         console.error("Failed to send next hearing update email:", emailErr);
-      }
+      });
     }
   }
 
