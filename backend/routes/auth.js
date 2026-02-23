@@ -20,8 +20,7 @@ const issueToken = (user) =>
 const hasMailConfig = () => {
   const user = process.env.SMTP_USER || process.env.EMAIL_USER;
   const pass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
-  const resendApiKey = process.env.RESEND_API_KEY;
-  return Boolean((user && pass) || resendApiKey);
+  return Boolean(user && pass);
 };
 
 const getOtpEmailErrorMessage = (err) => {
@@ -30,7 +29,6 @@ const getOtpEmailErrorMessage = (err) => {
   if (code === "ETIMEDOUT" || code === "ECONNECTION") return "Email server timeout. Please try again.";
   if (code === "ESOCKET") return "Email socket error. Check SMTP host/port/secure settings.";
   if (code === "EENVELOPE") return "Email sender/recipient rejected. Check EMAIL_FROM and recipient email.";
-  if (code === "ERESEND") return "Email API request failed. Check RESEND_API_KEY and EMAIL_FROM.";
   return "Failed to send OTP";
 };
 

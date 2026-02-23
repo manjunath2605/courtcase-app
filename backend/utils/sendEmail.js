@@ -1,7 +1,5 @@
 const nodemailer = require("nodemailer");
 
-const resendApiKey = String(process.env.RESEND_API_KEY || "").trim();
-const resendApiUrl = process.env.RESEND_API_URL || "https://api.resend.com/emails";
 const smtpHost = process.env.SMTP_HOST || "smtp.gmail.com";
 const smtpPort = Number(process.env.SMTP_PORT || 587);
 const smtpUser = process.env.SMTP_USER || process.env.EMAIL_USER;
@@ -37,39 +35,6 @@ const verifyTransporter = async () => {
 
 module.exports = async (to, subject, message, html, attachments = []) => {
   const from = process.env.EMAIL_FROM || smtpUser;
-
-  // Prefer HTTPS email API on hosted servers where SMTP can time out.
-  if (resendApiKey && attachments.length === 0) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 15000);
-    try {
-      const response = await fetch(resendApiUrl, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendApiKey}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          from,
-          to: [to],
-          subject,
-          text: message,
-          ...(html ? { html } : {})
-        }),
-        signal: controller.signal
-      });
-
-      if (!response.ok) {
-        const body = await response.text();
-        const err = new Error(`Resend API failed: ${response.status} ${body}`);
-        err.code = "ERESEND";
-        throw err;
-      }
-      return;
-    } finally {
-      clearTimeout(timer);
-    }
-  }
 
   await verifyTransporter();
   await transporter.sendMail({
