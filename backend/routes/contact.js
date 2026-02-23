@@ -1,5 +1,4 @@
 const router = require("express").Router();
-const twilio = require("twilio");
 const sendEmail = require("../utils/sendEmail");
 
 router.post("/", async (req, res) => {
@@ -15,7 +14,6 @@ router.post("/", async (req, res) => {
     const resendApiKey = process.env.RESEND_API_KEY;
     const emailTo = process.env.CONTACT_EMAIL_TO || smtpUser;
     let emailSent = false;
-    let smsSent = false;
 
     const text = [
       "We have recived enquiry from contact form on website:",
@@ -33,32 +31,15 @@ router.post("/", async (req, res) => {
       emailSent = true;
     }
 
-    const hasTwilioConfig =
-      process.env.TWILIO_ACCOUNT_SID &&
-      process.env.TWILIO_AUTH_TOKEN &&
-      process.env.TWILIO_FROM_PHONE &&
-      process.env.CONTACT_PHONE_TO;
-
-    if (hasTwilioConfig) {
-      const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-      await client.messages.create({
-        from: process.env.TWILIO_FROM_PHONE,
-        to: process.env.CONTACT_PHONE_TO,
-        body: `Contact: ${name}, ${phone}, ${email}. Msg: ${message}`.slice(0, 1600)
-      });
-      smsSent = true;
-    }
-
-    if (!emailSent && !smsSent) {
+    if (!emailSent) {
       return res.status(500).json({
-        msg: "Contact delivery is not configured. Set email and/or Twilio env vars."
+        msg: "Contact delivery is not configured. Set email environment variables."
       });
     }
 
     res.json({
       msg: "Contact details submitted successfully",
-      emailSent,
-      smsSent
+      emailSent
     });
   } catch (err) {
     console.error("Contact submit failed:", err);
