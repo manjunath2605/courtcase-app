@@ -12,6 +12,7 @@ router.post("/", async (req, res) => {
 
     const smtpUser = process.env.SMTP_USER || process.env.EMAIL_USER;
     const smtpPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+    const resendApiKey = process.env.RESEND_API_KEY;
     const emailTo = process.env.CONTACT_EMAIL_TO || smtpUser;
     let emailSent = false;
     let smsSent = false;
@@ -27,7 +28,7 @@ router.post("/", async (req, res) => {
       message
     ].join("\n");
 
-    if (emailTo && smtpUser && smtpPass) {
+    if (emailTo && ((smtpUser && smtpPass) || resendApiKey)) {
       await sendEmail(emailTo, "New Contact Enquiry", text);
       emailSent = true;
     }
