@@ -11,13 +11,8 @@ const baseURL = isLocalhost
 const api = axios.create({
   baseURL,
   // Avoid indefinite spinner when backend/email provider stalls.
-  timeout: 45000
-});
-
-api.interceptors.request.use(config => {
-  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
+  timeout: 45000,
+  withCredentials: true
 });
 
 export default api;

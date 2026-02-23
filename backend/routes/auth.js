@@ -17,6 +17,16 @@ const issueTokenFromPayload = (payload) =>
 const issueToken = (user) =>
   issueTokenFromPayload({ id: user._id, role: user.role });
 
+const setAuthCookie = (res, token) => {
+  const isProduction = process.env.NODE_ENV === "production";
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    maxAge: 24 * 60 * 60 * 1000
+  });
+};
+
 const hasMailConfig = () => {
   const user = process.env.SMTP_USER || process.env.EMAIL_USER;
   const pass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
@@ -46,8 +56,8 @@ router.post("/login", async (req, res) => {
   if (!isMatch) return res.status(401).json({ msg: "Invalid password" });
 
   const token = issueToken(user);
-
-  res.json({ token, user });
+  setAuthCookie(res, token);
+  res.json({ user });
 });
 
 // REQUEST EMAIL OTP LOGIN
@@ -183,7 +193,8 @@ router.post("/login/verify-otp", async (req, res) => {
     await user.save();
 
     const token = issueToken(user);
-    res.json({ token, user });
+    setAuthCookie(res, token);
+    res.json({ user });
   } catch (err) {
     console.error("OTP verify failed:", err);
     res.status(500).json({ msg: "OTP verification failed" });
@@ -286,7 +297,8 @@ router.post("/client/verify-otp", async (req, res) => {
       email
     };
     const token = issueTokenFromPayload(userPayload);
-    res.json({ token, user: { role: "client", email, name: clientCase.partyName || "Client" } });
+    setAuthCookie(res, token);
+    res.json({ user: { role: "client", email, name: clientCase.partyName || "Client" } });
   } catch (err) {
     console.error("Client OTP verify failed:", err);
     res.status(500).json({ msg: "OTP verification failed" });
@@ -404,6 +416,16 @@ router.post("/reset-password/:token", async (req, res) => {
 
   await user.save();
   res.json({ msg: "Password updated" });
+});
+
+router.post("/logout", (req, res) => {
+  const isProduction = process.env.NODE_ENV === "production";
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax"
+  });
+  res.json({ msg: "Logged out" });
 });
 
 

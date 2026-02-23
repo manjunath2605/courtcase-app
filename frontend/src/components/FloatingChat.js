@@ -38,7 +38,7 @@ export default function FloatingChat() {
   const user =
     JSON.parse(localStorage.getItem("user")) ||
     JSON.parse(sessionStorage.getItem("user"));
-  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const isLoggedIn = Boolean(user);
   const isClient = user?.role === "client";
   const myId = String(user?._id || user?.id || "");
   const chatFont = '"Segoe UI", "Helvetica Neue", Arial, sans-serif';
@@ -83,17 +83,17 @@ export default function FloatingChat() {
   }, [ensureAudioContext]);
 
   const fetchMessages = useCallback(async () => {
-    if (!token) return;
+    if (!isLoggedIn) return;
     try {
       const res = await api.get("/chat");
       setMessages(res.data);
     } catch {
       setMessages([]);
     }
-  }, [token]);
+  }, [isLoggedIn]);
 
   const fetchUnread = useCallback(async () => {
-    if (!token) return;
+    if (!isLoggedIn) return;
     try {
       const res = await api.get("/chat/unread-count");
       const count = Number(res.data.count || 0);
@@ -107,26 +107,26 @@ export default function FloatingChat() {
     } catch {
       setUnread(0);
     }
-  }, [playIncomingSound, token]);
+  }, [isLoggedIn, playIncomingSound]);
 
   useEffect(() => {
-    if (!token) return;
+    if (!isLoggedIn) return;
     fetchUnread();
     const interval = setInterval(fetchUnread, 5000);
     return () => clearInterval(interval);
-  }, [fetchUnread, token]);
+  }, [fetchUnread, isLoggedIn]);
 
   useEffect(() => {
-    if (!token || !open) return;
+    if (!isLoggedIn || !open) return;
     fetchMessages();
     api.post("/chat/mark-read").catch(() => {});
-  }, [fetchMessages, open, token]);
+  }, [fetchMessages, isLoggedIn, open]);
 
   useEffect(() => {
-    if (!token || !open) return;
+    if (!isLoggedIn || !open) return;
     const interval = setInterval(fetchMessages, 3000);
     return () => clearInterval(interval);
-  }, [fetchMessages, open, token]);
+  }, [fetchMessages, isLoggedIn, open]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -171,7 +171,7 @@ export default function FloatingChat() {
     setMessages((prev) => prev.filter((m) => m._id !== id));
   };
 
-  if (!token || isClient) return null;
+  if (!isLoggedIn || isClient) return null;
 
   return (
     <>

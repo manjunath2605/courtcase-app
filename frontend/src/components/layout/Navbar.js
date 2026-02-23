@@ -16,15 +16,15 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import GavelIcon from "@mui/icons-material/Gavel";
 import { useNavigate, Link } from "react-router-dom";
+import api from "../../api";
 
 export default function Navbar() {
   const navigate = useNavigate();
 
-  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
   const user =
     JSON.parse(localStorage.getItem("user")) ||
     JSON.parse(sessionStorage.getItem("user"));
-  const isLoggedIn = Boolean(token && user);
+  const isLoggedIn = Boolean(user);
 
   const role = user?.role;
   const isAdmin = role === "admin";
@@ -52,11 +52,14 @@ export default function Navbar() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch {
+      // Clear local session state even if server logout fails.
+    }
     localStorage.removeItem("user");
-    localStorage.removeItem("token");
     sessionStorage.removeItem("user");
-    sessionStorage.removeItem("token");
     navigate("/");
     window.location.reload();
   };

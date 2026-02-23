@@ -54,9 +54,7 @@ export default function ClientLogin() {
     try {
       const res = await api.post("/auth/client/verify-otp", { email, otp });
 
-      localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      sessionStorage.removeItem("token");
       sessionStorage.removeItem("user");
 
       navigate("/dashboard");

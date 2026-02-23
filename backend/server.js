@@ -1,6 +1,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const helmet = require("helmet");
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
 const authRoutes = require("./routes/auth");
@@ -9,8 +11,31 @@ const chatRoutes = require("./routes/chat");
 const contactRoutes = require("./routes/contact");
 
 const app = express();
-app.use(cors());
+const configuredOrigins = [
+  process.env.APP_BASE_URL,
+  process.env.FRONTEND_URL,
+  ...(process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(",") : [])
+]
+  .map((origin) => String(origin || "").trim().replace(/\/+$/, ""))
+  .filter(Boolean);
+
+const allowlist = new Set([
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  ...configuredOrigins
+]);
+
+app.set("trust proxy", 1);
+app.use(helmet());
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowlist.has(origin)) return callback(null, true);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
 const PORT = process.env.PORT || 5000;
 
 
