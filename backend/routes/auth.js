@@ -369,7 +369,12 @@ router.post("/forgot-password", async (req, res) => {
     user.resetTokenExpiry = Date.now() + 3600000; // 1 hour
     await user.save();
 
-    const appBaseUrl = (process.env.APP_BASE_URL || "http://localhost:3000").replace(/\/+$/, "");
+    const isProduction = process.env.NODE_ENV === "production";
+    const configuredBaseUrl = String(process.env.APP_BASE_URL || "").trim();
+    if (isProduction && !configuredBaseUrl) {
+      return res.status(500).json({ msg: "APP_BASE_URL is not configured" });
+    }
+    const appBaseUrl = (configuredBaseUrl || "http://localhost:3000").replace(/\/+$/, "");
     const link = `${appBaseUrl}/reset-password/${token}`;
 
     await sendEmail(
