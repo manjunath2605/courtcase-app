@@ -4,6 +4,10 @@ const auth = require("../middleware/auth");
 const sendEmail = require("../utils/sendEmail");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
+
+const hashAccessCode = (code) =>
+  crypto.createHash("sha256").update(String(code)).digest("hex");
 
 const normalizeDateKey = (value) => {
   if (!value) return "";
@@ -50,7 +54,11 @@ const escapeHtml = (value) =>
 router.get("/", auth, async (req, res) => {
   const filter = {};
   if (req.user?.role === "client") {
-    filter.partyEmail = { $regex: `^${String(req.user.email || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" };
+    if (req.user.caseId) {
+      filter._id = req.user.caseId;
+    } else {
+      filter.partyEmail = { $regex: `^${String(req.user.email || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" };
+    }
   }
   if (req.query.court) filter.court = req.query.court;
   if (req.query.status) filter.status = req.query.status;
@@ -61,7 +69,11 @@ router.get("/today", auth, async (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
   const filter = { nextDate: today };
   if (req.user?.role === "client") {
-    filter.partyEmail = { $regex: `^${String(req.user.email || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" };
+    if (req.user.caseId) {
+      filter._id = req.user.caseId;
+    } else {
+      filter.partyEmail = { $regex: `^${String(req.user.email || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" };
+    }
   }
   res.json(await Case.find(filter));
 });
@@ -71,7 +83,14 @@ router.post("/", auth, async (req, res) => {
     return res.status(403).json({ msg: "Client is read-only" });
   }
 
-  const c = new Case(req.body);
+  const payload = { ...req.body };
+  const accessCode = String(payload.clientAccessCode || "").trim();
+  delete payload.clientAccessCode;
+  const c = new Case(payload);
+
+  if (accessCode) {
+    c.clientAccessCodeHash = hashAccessCode(accessCode);
+  }
 
   const history = Array.isArray(c.history) ? c.history : [];
   const entry = buildHistoryEntry(c, req.user?.id);
@@ -90,11 +109,11 @@ router.get("/:id", auth, async (req, res) => {
   const caseData = await Case.findById(req.params.id);
   if (!caseData) return res.status(404).json({ msg: "Case not found" });
 
-  if (
-    req.user?.role === "client" &&
-    String(caseData.partyEmail || "").toLowerCase() !== String(req.user.email || "").toLowerCase()
-  ) {
-    return res.status(403).json({ msg: "Not allowed" });
+  if (req.user?.role === "client") {
+    const sameCase = req.user.caseId && String(req.user.caseId) === String(caseData._id);
+    const sameEmail =
+      String(caseData.partyEmail || "").toLowerCase() === String(req.user.email || "").toLowerCase();
+    if (!sameCase && !sameEmail) return res.status(403).json({ msg: "Not allowed" });
   }
 
   res.json(caseData);
@@ -110,9 +129,11 @@ router.put("/:id", auth, async (req, res) => {
   if (!existing) return res.status(404).json({ msg: "Case not found" });
 
   const updates = { ...req.body };
+  const accessCode = String(updates.clientAccessCode || "").trim();
   delete updates._id;
   delete updates.__v;
   delete updates.history;
+  delete updates.clientAccessCode;
 
   const beforeUpdate = {
     nextDate: existing.nextDate,
@@ -122,6 +143,9 @@ router.put("/:id", auth, async (req, res) => {
   };
 
   Object.assign(existing, updates);
+  if (accessCode) {
+    existing.clientAccessCodeHash = hashAccessCode(accessCode);
+  }
 
   const history = Array.isArray(existing.history) ? [...existing.history] : [];
   const entry = buildHistoryEntry(existing, req.user?.id);

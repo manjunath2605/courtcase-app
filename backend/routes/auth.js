@@ -253,6 +253,50 @@ router.post("/client/request-otp", async (req, res) => {
   }
 });
 
+// CLIENT LOGIN: CASE NUMBER + ACCESS CODE (ADMIN PROVIDED)
+router.post("/client/login-with-code", async (req, res) => {
+  try {
+    const caseNo = String(req.body?.caseNo || "").trim();
+    const accessCode = String(req.body?.accessCode || "").trim();
+
+    if (!caseNo || !accessCode) {
+      return res.status(400).json({ msg: "Case Number and Access Code are required" });
+    }
+
+    const caseData = await Case.findOne({ caseNo }).select("+clientAccessCodeHash");
+    if (!caseData || !caseData.clientAccessCodeHash) {
+      return res.status(401).json({ msg: "Invalid case number or access code" });
+    }
+
+    const codeHash = hashOtp(accessCode);
+    if (caseData.clientAccessCodeHash !== codeHash) {
+      return res.status(401).json({ msg: "Invalid case number or access code" });
+    }
+
+    const userPayload = {
+      id: `clientcase:${caseData._id}`,
+      role: "client",
+      caseId: String(caseData._id),
+      email: caseData.partyEmail || ""
+    };
+
+    const token = issueTokenFromPayload(userPayload);
+    setAuthCookie(res, token);
+    return res.json({
+      user: {
+        id: String(caseData._id),
+        role: "client",
+        caseId: String(caseData._id),
+        email: caseData.partyEmail || "",
+        name: caseData.partyName || "Client"
+      }
+    });
+  } catch (err) {
+    console.error("Client code login failed:", err);
+    return res.status(500).json({ msg: "Client login failed" });
+  }
+});
+
 // CLIENT LOGIN: VERIFY OTP
 router.post("/client/verify-otp", async (req, res) => {
   try {

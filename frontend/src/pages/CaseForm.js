@@ -47,6 +47,7 @@ const DEFAULT_FORM = {
   status: "",
   court: "Senior Civil Judge - Chikodi",
   otherCourt: "",
+  clientAccessCode: "",
   nextDate: "",
   partyName: "",
   partyEmail: "",
@@ -379,6 +380,19 @@ export default function CaseForm() {
                     value={form.partyPhone}
                     onChange={handleChange}
                     disabled={isReadOnly}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Client Access Code"
+                    name="clientAccessCode"
+                    type="password"
+                    value={form.clientAccessCode || ""}
+                    onChange={handleChange}
+                    disabled={isReadOnly}
+                    helperText="Share this code with client. Leave blank while editing to keep existing code."
                   />
                 </Grid>
               </>

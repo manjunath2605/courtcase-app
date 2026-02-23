@@ -15,6 +15,10 @@ const CaseSchema = new mongoose.Schema({
   partyName: String,
   partyEmail: String,
   partyPhone: String,
+  clientAccessCodeHash: {
+    type: String,
+    select: false
+  },
   status: String,
   nextDate: Date,
   remarks: String,
