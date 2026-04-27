@@ -21,15 +21,34 @@ const configuredOrigins = [
 
 const allowlist = new Set([
   "http://localhost:3000",
+  "http://localhost:3001",
+  "http://localhost:5173",
   "http://127.0.0.1:3000",
+  "http://127.0.0.1:3001",
+  "http://127.0.0.1:5173",
   ...configuredOrigins
 ]);
+
+const isLoopbackOrigin = (origin) => {
+  if (!origin) return false;
+
+  try {
+    const parsed = new URL(origin);
+    const host = parsed.hostname.toLowerCase();
+    return host === "localhost" || host === "127.0.0.1" || host === "::1";
+  } catch {
+    return false;
+  }
+};
 
 app.set("trust proxy", 1);
 app.use(helmet());
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowlist.has(origin)) return callback(null, true);
+    const isDevelopment = process.env.NODE_ENV !== "production";
+    if (!origin || allowlist.has(origin) || (isDevelopment && isLoopbackOrigin(origin))) {
+      return callback(null, true);
+    }
     return callback(new Error("Not allowed by CORS"));
   },
   credentials: true

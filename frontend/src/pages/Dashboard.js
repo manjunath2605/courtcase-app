@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api";
 import {
@@ -26,22 +26,24 @@ import {
 
 export default function Dashboard() {
   const printRef = useRef();
+  const currentYear = String(new Date().getFullYear());
 
   const [cases, setCases] = useState([]);
   const [court, setCourt] = useState("");
   const [status, setStatus] = useState("");
+  const [year, setYear] = useState(currentYear);
   const [todayOnly, setTodayOnly] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    fetchCases();
-  }, []);
-
-  const fetchCases = async () => {
-    const res = await api.get("/cases");
+  const fetchCases = useCallback(async () => {
+    const params = new URLSearchParams();
+    if (court) params.set("court", court);
+    if (status) params.set("status", status);
+    if (year) params.set("year", year);
+    const res = await api.get(`/cases${params.toString() ? `?${params.toString()}` : ""}`);
     setCases(res.data);
-  };
+  }, [court, status, year]);
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -70,6 +72,7 @@ export default function Dashboard() {
   const filteredCases = cases.filter((c) => {
     if (court && c.court !== court) return false;
     if (status && c.status !== status) return false;
+    if (year && formatDate(c.nextDate).slice(0, 4) !== year) return false;
     if (todayOnly && c.nextDate?.slice(0, 10) !== today) return false;
     if (selectedDate && c.nextDate?.slice(0, 10) !== selectedDate) return false;
 
@@ -86,6 +89,14 @@ export default function Dashboard() {
 
   const courts = [...new Set(cases.map((c) => c.court))];
   const statuses = [...new Set(cases.map((c) => c.status))];
+  const years = [
+    ...new Set([
+      currentYear,
+      ...cases
+        .map((c) => formatDate(c.nextDate).slice(0, 4))
+        .filter((value) => /^\d{4}$/.test(value))
+    ])
+  ].sort((a, b) => b.localeCompare(a));
 
   const stats = useMemo(() => {
     const total = cases.length;
@@ -120,6 +131,10 @@ export default function Dashboard() {
     win.document.close();
     win.print();
   };
+
+  useEffect(() => {
+    fetchCases();
+  }, [fetchCases]);
 
   return (
     <Box
@@ -225,6 +240,16 @@ export default function Dashboard() {
                   </Select>
                 </FormControl>
 
+                <FormControl sx={{ minWidth: 180 }}>
+                  <InputLabel>Year</InputLabel>
+                  <Select value={year} label="Year" onChange={(e) => setYear(e.target.value)}>
+                    <MenuItem value="">All</MenuItem>
+                    {years.map((y) => (
+                      <MenuItem key={y} value={y}>{y}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
                 <TextField
                   type="date"
                   label="Next Date"
@@ -254,6 +279,7 @@ export default function Dashboard() {
                   onClick={() => {
                     setCourt("");
                     setStatus("");
+                    setYear(currentYear);
                     setTodayOnly(false);
                     setSelectedDate("");
                     setSearch("");

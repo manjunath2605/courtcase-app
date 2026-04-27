@@ -44,12 +44,12 @@ export default function App() {
             <Route path="/cases/new" element={<PrivateRoute><CaseForm key="add" /></PrivateRoute>} />
             <Route path="/users" element={
               <PrivateRoute>
-                <RoleRoute role="admin"><Users /></RoleRoute>
+                <RoleRoute role={["admin", "superadmin"]}><Users /></RoleRoute>
               </PrivateRoute>
             } />
             <Route path="/register" element={
               <PrivateRoute>
-                <RoleRoute role="admin"><Register /></RoleRoute>
+                <RoleRoute role={["admin", "superadmin"]}><Register /></RoleRoute>
               </PrivateRoute>
             } />
           </Routes>

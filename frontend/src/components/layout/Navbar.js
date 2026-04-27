@@ -27,8 +27,8 @@ export default function Navbar() {
   const isLoggedIn = Boolean(user);
 
   const role = user?.role;
-  const isAdmin = role === "admin";
-  const canEdit = role === "admin" || role === "user";
+  const isAdmin = role === "admin" || role === "superadmin";
+  const canEdit = isAdmin || role === "user";
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const toggleDrawer = (open) => () => setDrawerOpen(open);

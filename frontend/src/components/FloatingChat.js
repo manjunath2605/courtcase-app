@@ -45,6 +45,9 @@ export default function FloatingChat() {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const formatChatDate = (value) => dayjs(value).format("D MMM YYYY");
+  const formatChatTime = (value) => dayjs(value).format("HH:mm");
+  const isSameChatDay = (a, b) => dayjs(a).format("YYYY-MM-DD") === dayjs(b).format("YYYY-MM-DD");
 
   const ensureAudioContext = useCallback(() => {
     if (typeof window === "undefined") return null;
@@ -171,6 +174,169 @@ export default function FloatingChat() {
     setMessages((prev) => prev.filter((m) => m._id !== id));
   };
 
+  const renderMessages = () => {
+    const items = [];
+
+    messages.forEach((m, index) => {
+      const prev = messages[index - 1];
+      const showDateDivider = !prev || !isSameChatDay(prev.createdAt, m.createdAt);
+
+      if (showDateDivider) {
+        items.push(
+          <Box
+            key={`date-${m._id}`}
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              my: 1.4,
+            }}
+          >
+            <Box
+              sx={{
+                px: 1.5,
+                py: 0.55,
+                borderRadius: 999,
+                bgcolor: "rgba(16,34,53,0.08)",
+                color: "#40566f",
+                fontSize: "0.72rem",
+                fontWeight: 700,
+                letterSpacing: 0.2,
+              }}
+            >
+              {formatChatDate(m.createdAt)}
+            </Box>
+          </Box>
+        );
+      }
+
+      const isMe = String(m.senderId || "") === myId;
+      const canEdit = isMe && isEditable(m.createdAt);
+      const isSeen = m.readBy?.length > 1;
+
+      items.push(
+        <Box
+          key={m._id}
+          className="message-row"
+          sx={{
+            display: "flex",
+            justifyContent: isMe ? "flex-end" : "flex-start",
+            mb: 1.1,
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 0.65,
+              maxWidth: isMobile ? "92%" : "84%",
+            }}
+          >
+            <Box
+              sx={{
+                bgcolor: isMe ? "#0f5b87" : "rgba(255,255,255,0.94)",
+                color: isMe ? "#fff" : "#102235",
+                px: 1.3,
+                py: 0.95,
+                borderRadius: isMe ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+                maxWidth: "100%",
+                border: isMe ? "none" : "1px solid rgba(16,34,53,0.08)",
+                boxShadow: "0 3px 10px rgba(11,36,59,0.08)",
+              }}
+            >
+              {!isMe && (
+                <Typography
+                  variant="caption"
+                  sx={{ fontWeight: 700, fontSize: "0.68rem", color: "#355272" }}
+                >
+                  {m.senderName}
+                </Typography>
+              )}
+
+              {editingId === m._id ? (
+                <Box sx={{ display: "flex", gap: 1 }}>
+                  <TextField
+                    size="small"
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        fontSize: "0.88rem",
+                        bgcolor: "#fff",
+                      },
+                    }}
+                  />
+                  <IconButton size="small" onClick={() => saveEdit(m._id)}>
+                    <CheckIcon />
+                  </IconButton>
+                </Box>
+              ) : (
+                <Typography sx={{ fontSize: "0.89rem", lineHeight: 1.45 }}>
+                  {m.message}
+                </Typography>
+              )}
+
+              <Typography
+                variant="caption"
+                sx={{
+                  display: "block",
+                  textAlign: "right",
+                  opacity: 0.78,
+                  fontSize: "0.68rem",
+                  mt: 0.6,
+                }}
+              >
+                {formatChatTime(m.createdAt)}
+                {m.edited && " | edited"}
+                {isMe && isSeen && " | seen"}
+              </Typography>
+            </Box>
+
+            {canEdit && editingId !== m._id && (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 0.5,
+                  opacity: isMobile ? 1 : 0,
+                  transition: "opacity 0.2s ease",
+                  ".message-row:hover &": {
+                    opacity: 1,
+                  },
+                }}
+              >
+                <IconButton
+                  size="small"
+                  sx={{
+                    color: "#2e7d32",
+                    bgcolor: "rgba(255,255,255,0.9)",
+                    border: "1px solid rgba(46,125,50,0.25)",
+                  }}
+                  onClick={() => startEdit(m)}
+                >
+                  <EditIcon fontSize="small" />
+                </IconButton>
+
+                <IconButton
+                  size="small"
+                  sx={{
+                    color: "#d32f2f",
+                    bgcolor: "rgba(255,255,255,0.9)",
+                    border: "1px solid rgba(211,47,47,0.25)",
+                  }}
+                  onClick={() => deleteMsg(m._id)}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            )}
+          </Box>
+        </Box>
+      );
+    });
+
+    return items;
+  };
+
   if (!isLoggedIn || isClient) return null;
 
   return (
@@ -259,131 +425,7 @@ export default function FloatingChat() {
               WebkitOverflowScrolling: "touch",
             }}
           >
-            {messages.map((m) => {
-              const isMe = String(m.senderId || "") === myId;
-              const canEdit = isMe && isEditable(m.createdAt);
-              const isSeen = m.readBy?.length > 1;
-
-              return (
-                <Box
-                  key={m._id}
-                  className="message-row"
-                  sx={{
-                    display: "flex",
-                    justifyContent: isMe ? "flex-end" : "flex-start",
-                    mb: 1.1,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: 0.65,
-                      maxWidth: isMobile ? "92%" : "84%",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        bgcolor: isMe ? "#0f5b87" : "rgba(255,255,255,0.94)",
-                        color: isMe ? "#fff" : "#102235",
-                        px: 1.3,
-                        py: 0.95,
-                        borderRadius: isMe ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
-                        maxWidth: "100%",
-                        border: isMe ? "none" : "1px solid rgba(16,34,53,0.08)",
-                        boxShadow: "0 3px 10px rgba(11,36,59,0.08)",
-                      }}
-                    >
-                      {!isMe && (
-                        <Typography
-                          variant="caption"
-                          sx={{ fontWeight: 700, fontSize: "0.68rem", color: "#355272" }}
-                        >
-                          {m.senderName}
-                        </Typography>
-                      )}
-
-                      {editingId === m._id ? (
-                        <Box sx={{ display: "flex", gap: 1 }}>
-                          <TextField
-                            size="small"
-                            value={editText}
-                            onChange={(e) => setEditText(e.target.value)}
-                            sx={{
-                              "& .MuiInputBase-root": {
-                                fontSize: "0.88rem",
-                                bgcolor: "#fff",
-                              },
-                            }}
-                          />
-                          <IconButton size="small" onClick={() => saveEdit(m._id)}>
-                            <CheckIcon />
-                          </IconButton>
-                        </Box>
-                      ) : (
-                        <Typography sx={{ fontSize: "0.89rem", lineHeight: 1.45 }}>
-                          {m.message}
-                        </Typography>
-                      )}
-
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          display: "block",
-                          textAlign: "right",
-                          opacity: 0.78,
-                          fontSize: "0.68rem",
-                          mt: 0.6,
-                        }}
-                      >
-                        {dayjs(m.createdAt).format("HH:mm")}
-                        {m.edited && " | edited"}
-                        {isMe && isSeen && " | seen"}
-                      </Typography>
-                    </Box>
-
-                    {canEdit && editingId !== m._id && (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 0.5,
-                          opacity: isMobile ? 1 : 0,
-                          transition: "opacity 0.2s ease",
-                          ".message-row:hover &": {
-                            opacity: 1,
-                          },
-                        }}
-                      >
-                        <IconButton
-                          size="small"
-                          sx={{
-                            color: "#2e7d32",
-                            bgcolor: "rgba(255,255,255,0.9)",
-                            border: "1px solid rgba(46,125,50,0.25)",
-                          }}
-                          onClick={() => startEdit(m)}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-
-                        <IconButton
-                          size="small"
-                          sx={{
-                            color: "#d32f2f",
-                            bgcolor: "rgba(255,255,255,0.9)",
-                            border: "1px solid rgba(211,47,47,0.25)",
-                          }}
-                          onClick={() => deleteMsg(m._id)}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    )}
-                  </Box>
-                </Box>
-              );
-            })}
+            {renderMessages()}
             <div ref={bottomRef} />
           </Box>
 

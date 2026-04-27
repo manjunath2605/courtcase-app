@@ -15,6 +15,10 @@ import { useNavigate } from "react-router-dom";
 
 export default function Register() {
   const navigate = useNavigate();
+  const currentUser =
+    JSON.parse(localStorage.getItem("user")) ||
+    JSON.parse(sessionStorage.getItem("user"));
+  const canCreateSuperAdmin = currentUser?.role === "superadmin";
 
   const [form, setForm] = useState({
     name: "",
@@ -121,6 +125,7 @@ export default function Register() {
                 onChange={handleChange}
                 fullWidth
               >
+                {canCreateSuperAdmin && <MenuItem value="superadmin">Super Admin</MenuItem>}
                 <MenuItem value="admin">Admin</MenuItem>
                 <MenuItem value="user">User</MenuItem>
                 <MenuItem value="viewer">Viewer (Read Only)</MenuItem>

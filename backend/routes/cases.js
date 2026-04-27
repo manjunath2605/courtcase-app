@@ -5,6 +5,7 @@ const sendEmail = require("../utils/sendEmail");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const { isAdminLike } = require("../utils/roles");
 
 const hashAccessCode = (code) =>
   crypto.createHash("sha256").update(String(code)).digest("hex");
@@ -51,6 +52,18 @@ const escapeHtml = (value) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
+const applyYearFilter = (filter, year) => {
+  const parsedYear = Number.parseInt(String(year || ""), 10);
+  if (!Number.isInteger(parsedYear) || parsedYear < 1900 || parsedYear > 3000) {
+    return;
+  }
+
+  filter.nextDate = {
+    $gte: new Date(Date.UTC(parsedYear, 0, 1)),
+    $lt: new Date(Date.UTC(parsedYear + 1, 0, 1))
+  };
+};
+
 router.get("/", auth, async (req, res) => {
   const filter = {};
   if (req.user?.role === "client") {
@@ -62,6 +75,7 @@ router.get("/", auth, async (req, res) => {
   }
   if (req.query.court) filter.court = req.query.court;
   if (req.query.status) filter.status = req.query.status;
+  applyYearFilter(filter, req.query.year);
   res.json(await Case.find(filter));
 });
 
@@ -312,7 +326,7 @@ router.delete("/:id", auth, async (req, res) => {
     if (req.user?.role === "client")
       return res.status(403).json({ msg: "Client is read-only" });
 
-    if (req.user.role !== "admin")
+    if (!isAdminLike(req.user.role))
       return res.status(403).json({ msg: "Admin only" });
 
     await Case.findByIdAndDelete(req.params.id);

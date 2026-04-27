@@ -2,6 +2,7 @@ const express = require("express");
 const ChatMessage = require("../models/ChatMessage");
 const User = require("../models/User");
 const auth = require("../middleware/auth");
+const { isAdminLike } = require("../utils/roles");
 
 const router = express.Router();
 
@@ -98,7 +99,7 @@ router.delete("/:id", auth, async (req, res) => {
     const msg = await ChatMessage.findById(req.params.id);
     if (!msg) return res.status(404).json({ msg: "Message not found" });
 
-    const isAdmin = req.user.role === "admin";
+    const isAdmin = isAdminLike(req.user.role);
     const isOwner = msg.senderId.toString() === req.user.id;
 
     // ❌ Not admin and not owner

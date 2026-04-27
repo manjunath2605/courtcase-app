@@ -5,11 +5,54 @@ const ClientOtp = require("../models/ClientOtp");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const auth = require("../middleware/auth");
+const { isAdminLike } = require("../utils/roles");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
 require("dotenv").config();
 
 const hashOtp = (otp) => crypto.createHash("sha256").update(String(otp)).digest("hex");
+
+const getSuperAdminConfig = () => {
+  const email = String(process.env.SUPER_ADMIN_EMAIL || "").trim().toLowerCase();
+  const password = String(process.env.SUPER_ADMIN_PASSWORD || "");
+  const name = String(process.env.SUPER_ADMIN_NAME || "").trim();
+
+  if (!email || !password) return null;
+
+  return {
+    email,
+    password,
+    name: name || "Super Admin"
+  };
+};
+
+const ensureSuperAdminAccount = async () => {
+  const config = getSuperAdminConfig();
+  if (!config) {
+    throw new Error("SUPER_ADMIN_EMAIL and SUPER_ADMIN_PASSWORD must be configured");
+  }
+
+  const { email, password, name } = config;
+  const hashedPassword = bcrypt.hashSync(password, 10);
+
+  return User.findOneAndUpdate(
+    { email },
+    {
+      $set: {
+        name,
+        email,
+        role: "superadmin",
+        password: hashedPassword
+      }
+    },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  ).select("-password");
+};
+
+const isSuperAdminCredentials = (email, password) => {
+  const config = getSuperAdminConfig();
+  return Boolean(config) && email === config.email && password === config.password;
+};
 
 const issueTokenFromPayload = (payload) =>
   jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1d" });
@@ -47,7 +90,19 @@ const getOtpEmailErrorMessage = (err) => {
 
 // LOGIN
 router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+  const email = String(req.body?.email || "").trim().toLowerCase();
+  const password = String(req.body?.password || "");
+
+  if (!email || !password) {
+    return res.status(400).json({ msg: "Email and password are required" });
+  }
+
+  if (isSuperAdminCredentials(email, password)) {
+    const user = await ensureSuperAdminAccount();
+    const token = issueToken(user);
+    setAuthCookie(res, token);
+    return res.json({ user });
+  }
 
   const user = await User.findOne({ email });
   if (!user) return res.status(401).json({ msg: "User not found" });
@@ -57,7 +112,7 @@ router.post("/login", async (req, res) => {
 
   const token = issueToken(user);
   setAuthCookie(res, token);
-  res.json({ user });
+  res.json({ user: { ...user.toObject(), password: undefined } });
 });
 
 // REQUEST EMAIL OTP LOGIN
@@ -351,10 +406,14 @@ router.post("/client/verify-otp", async (req, res) => {
 
 // REGISTER (ADMIN ONLY)
 router.post("/register", auth, async (req, res) => {
-  if (req.user.role !== "admin")
+  if (!isAdminLike(req.user.role))
     return res.status(403).json({ msg: "Admin only" });
 
   const { name, email, password, role } = req.body;
+
+  if (role === "superadmin" && req.user.role !== "superadmin") {
+    return res.status(403).json({ msg: "Super admin only" });
+  }
 
   const exists = await User.findOne({ email });
   if (exists) return res.status(400).json({ msg: "User already exists" });
@@ -372,7 +431,7 @@ router.post("/register", auth, async (req, res) => {
 
 // LIST USERS (ADMIN)
 router.get("/users", auth, async (req, res) => {
-  if (req.user.role !== "admin")
+  if (!isAdminLike(req.user.role))
     return res.status(403).json({ msg: "Admin only" });
 
   res.json(await User.find().select("-password"));
@@ -380,7 +439,7 @@ router.get("/users", auth, async (req, res) => {
 
 // DELETE USER (ADMIN)
 router.delete("/users/:id", auth, async (req, res) => {
-  if (req.user.role !== "admin")
+  if (!isAdminLike(req.user.role))
     return res.status(403).json({ msg: "Admin only" });
 
   await User.findByIdAndDelete(req.params.id);
@@ -390,12 +449,16 @@ router.delete("/users/:id", auth, async (req, res) => {
 
 // UPDATE USER ROLE (ADMIN ONLY)
 router.put("/users/:id/role", auth, async (req, res) => {
-  if (req.user.role !== "admin")
+  if (!isAdminLike(req.user.role))
     return res.status(403).json({ msg: "Admin only" });
 
   const { role } = req.body;
 
-  if (!["admin", "user", "viewer"].includes(role)) {
+  if (role === "superadmin" && req.user.role !== "superadmin") {
+    return res.status(403).json({ msg: "Super admin only" });
+  }
+
+  if (!["superadmin", "admin", "user", "viewer"].includes(role)) {
     return res.status(400).json({ msg: "Invalid role" });
   }
 

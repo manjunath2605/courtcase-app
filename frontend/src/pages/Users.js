@@ -30,6 +30,7 @@ export default function Users() {
   const currentUser =
     JSON.parse(localStorage.getItem("user")) ||
     JSON.parse(sessionStorage.getItem("user"));
+  const canAssignSuperAdmin = currentUser?.role === "superadmin";
 
   const fetchUsers = async () => {
     try {
@@ -72,6 +73,8 @@ export default function Users() {
 
   const getRoleIcon = (role) => {
     switch (role) {
+      case "superadmin":
+        return <AdminPanelSettingsIcon sx={{ fontSize: 20 }} />;
       case "admin":
         return <AdminPanelSettingsIcon sx={{ fontSize: 20 }} />;
       case "user":
@@ -85,6 +88,8 @@ export default function Users() {
 
   const getRoleColor = (role) => {
     switch (role) {
+      case "superadmin":
+        return { bg: "#fff1db", text: "#9a5b00" };
       case "admin":
         return { bg: "#ffeef1", text: "#b01837" };
       case "user":
@@ -225,6 +230,7 @@ export default function Users() {
                           }
                           sx={{ mb: 2 }}
                         >
+                          {canAssignSuperAdmin && <MenuItem value="superadmin">Super Admin</MenuItem>}
                           <MenuItem value="admin">Admin</MenuItem>
                           <MenuItem value="user">User</MenuItem>
                           <MenuItem value="viewer">Viewer (Read Only)</MenuItem>
