@@ -42,8 +42,12 @@ const COURTS = [
   "Other"
 ];
 
+const CASE_TYPES = ["O.S", "R.A", "S.C", "Other"];
+
 const DEFAULT_FORM = {
   caseNo: "",
+  caseType: "",
+  otherCaseType: "",
   status: "",
   court: "Senior Civil Judge - Chikodi",
   otherCourt: "",
@@ -99,10 +103,14 @@ export default function CaseForm() {
         const res = await api.get(`/cases/${id}`);
         const data = res.data;
         const history = Array.isArray(data.history) ? data.history : [];
+        const caseType = CASE_TYPES.includes(data.caseType) ? data.caseType : (data.caseType ? "Other" : "");
+        const otherCaseType = CASE_TYPES.includes(data.caseType) ? "" : (data.caseType || "");
 
         if (!COURTS.includes(data.court)) {
           setForm({
             ...data,
+            caseType,
+            otherCaseType,
             court: "Other",
             otherCourt: data.court,
             nextDate: data.nextDate?.slice(0, 10) || "",
@@ -111,6 +119,8 @@ export default function CaseForm() {
         } else {
           setForm({
             ...data,
+            caseType,
+            otherCaseType,
             otherCourt: "",
             nextDate: data.nextDate?.slice(0, 10) || "",
             history
@@ -132,6 +142,8 @@ export default function CaseForm() {
 
   const validate = () => {
     if (!form.caseNo) return "Case Number is required";
+    if (!form.caseType) return "Case Type is required";
+    if (form.caseType === "Other" && !form.otherCaseType) return "Specify Case Type";
     if (!form.status) return "Stage is required";
     if (!form.court) return "Court is required";
     if (form.court === "Other" && !form.otherCourt) return "Specify Court";
@@ -153,8 +165,10 @@ export default function CaseForm() {
 
     const payload = {
       ...form,
+      caseType: form.caseType === "Other" ? form.otherCaseType : form.caseType,
       court: form.court === "Other" ? form.otherCourt : form.court
     };
+    delete payload.otherCaseType;
     delete payload.otherCourt;
     delete payload.history;
     delete payload._id;
@@ -252,6 +266,12 @@ export default function CaseForm() {
                   <Typography variant="body1">{form.caseNo || "-"}</Typography>
                 </Grid>
                 <Grid item xs={12} md={6}>
+                  <Typography variant="body2" color="text.secondary">Case Type</Typography>
+                  <Typography variant="body1">
+                    {form.caseType === "Other" ? form.otherCaseType || "-" : form.caseType || "-"}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
                   <Typography variant="body2" color="text.secondary">Stage</Typography>
                   <Typography variant="body1">{form.status || "-"}</Typography>
                 </Grid>
@@ -278,6 +298,56 @@ export default function CaseForm() {
               </>
             ) : (
               <>
+                <Grid item xs={12}>
+                  <TextField
+                    select
+                    fullWidth
+                    required
+                    label="Case Type"
+                    name="caseType"
+                    value={form.caseType}
+                    onChange={handleChange}
+                    disabled={isReadOnly}
+                    InputLabelProps={{ shrink: true }}
+                    SelectProps={{
+                      displayEmpty: true,
+                      renderValue: (selected) => selected || <span style={{ opacity: 0.65 }}>Select Case Type</span>
+                    }}
+                    sx={{
+                      "& .MuiSelect-select": {
+                        color: "#0d2b46",
+                        fontWeight: 600
+                      }
+                    }}
+                  >
+                    {CASE_TYPES.map((type) => (
+                      <MenuItem key={type} value={type}>
+                        {type}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+
+                {form.caseType === "Other" && (
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      required
+                      label="Specify Case Type"
+                      name="otherCaseType"
+                      value={form.otherCaseType}
+                      onChange={handleChange}
+                      disabled={isReadOnly}
+                      sx={{
+                        "& .MuiInputBase-input": {
+                          color: "#0d2b46",
+                          fontWeight: 600
+                        }
+                      }}
+                    />
+                  </Grid>
+                )}
+
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth

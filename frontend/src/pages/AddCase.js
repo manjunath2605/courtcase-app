@@ -9,9 +9,12 @@ import {
     Button,
     Grid,
     Stack,
-    Alert
+    Alert,
+    MenuItem
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+
+const CASE_TYPES = ["O.S", "R.A", "S.C", "Other"];
 
 export default function AddCase() {
     const navigate = useNavigate();
@@ -24,6 +27,8 @@ export default function AddCase() {
 
     const [form, setForm] = useState({
         caseNo: "",
+        caseType: "",
+        otherCaseType: "",
         court: "",
         partyName: "",
         partyEmail: "",
@@ -47,7 +52,10 @@ export default function AddCase() {
 
         try {
             setLoading(true);
-            await api.post("/cases", form);
+            await api.post("/cases", {
+                ...form,
+                caseType: form.caseType === "Other" ? form.otherCaseType : form.caseType
+            });
             navigate("/dashboard");
         } catch (err) {
             setError(err.response?.data?.msg || "Failed to add case");
@@ -92,6 +100,54 @@ export default function AddCase() {
 
                     {/* FORM */}
                     <form onSubmit={submit}>
+                        <Box sx={{ mb: 3 }}>
+                            <TextField
+                                select
+                                label="Case Type"
+                                name="caseType"
+                                value={form.caseType}
+                                onChange={handleChange}
+                                fullWidth
+                                required
+                                InputLabelProps={{ shrink: true }}
+                                SelectProps={{
+                                    displayEmpty: true,
+                                    renderValue: (selected) => selected || <span style={{ opacity: 0.65 }}>Select Case Type</span>
+                                }}
+                                sx={{
+                                    "& .MuiSelect-select": {
+                                        color: "#0d2b46",
+                                        fontWeight: 600
+                                    }
+                                }}
+                            >
+                                {CASE_TYPES.map((type) => (
+                                    <MenuItem key={type} value={type}>
+                                        {type}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                        </Box>
+
+                        {form.caseType === "Other" && (
+                            <Box sx={{ mb: 3 }}>
+                                <TextField
+                                    label="Specify Case Type"
+                                    name="otherCaseType"
+                                    value={form.otherCaseType}
+                                    onChange={handleChange}
+                                    fullWidth
+                                    required
+                                    sx={{
+                                        "& .MuiInputBase-input": {
+                                            color: "#0d2b46",
+                                            fontWeight: 600
+                                        }
+                                    }}
+                                />
+                            </Box>
+                        )}
+
                         <Grid container spacing={3}>
                             {/* CASE NO */}
                             <Grid item xs={12} md={6}>

@@ -10,6 +10,15 @@ const { isAdminLike } = require("../utils/roles");
 const hashAccessCode = (code) =>
   crypto.createHash("sha256").update(String(code)).digest("hex");
 
+const normalizeCaseType = (payload) => {
+  const caseType = String(payload.caseType || "").trim();
+  const otherCaseType = String(payload.otherCaseType || "").trim();
+  const resolvedType = caseType === "Other" ? otherCaseType : caseType;
+
+  payload.caseType = resolvedType;
+  delete payload.otherCaseType;
+};
+
 const normalizeDateKey = (value) => {
   if (!value) return "";
   const date = new Date(value);
@@ -75,6 +84,7 @@ router.get("/", auth, async (req, res) => {
   }
   if (req.query.court) filter.court = req.query.court;
   if (req.query.status) filter.status = req.query.status;
+  if (req.query.caseType) filter.caseType = req.query.caseType;
   applyYearFilter(filter, req.query.year);
   res.json(await Case.find(filter));
 });
@@ -98,6 +108,7 @@ router.post("/", auth, async (req, res) => {
   }
 
   const payload = { ...req.body };
+  normalizeCaseType(payload);
   const accessCode = String(payload.clientAccessCode || "").trim();
   delete payload.clientAccessCode;
   const c = new Case(payload);
@@ -143,6 +154,7 @@ router.put("/:id", auth, async (req, res) => {
   if (!existing) return res.status(404).json({ msg: "Case not found" });
 
   const updates = { ...req.body };
+  normalizeCaseType(updates);
   const accessCode = String(updates.clientAccessCode || "").trim();
   delete updates._id;
   delete updates.__v;

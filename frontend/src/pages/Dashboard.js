@@ -27,10 +27,12 @@ import {
 export default function Dashboard() {
   const printRef = useRef();
   const currentYear = String(new Date().getFullYear());
+  const CASE_TYPE_OPTIONS = ["O.S", "R.A", "S.C", "Other"];
 
   const [cases, setCases] = useState([]);
   const [court, setCourt] = useState("");
   const [status, setStatus] = useState("");
+  const [caseType, setCaseType] = useState("");
   const [year, setYear] = useState(currentYear);
   const [todayOnly, setTodayOnly] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
@@ -40,10 +42,11 @@ export default function Dashboard() {
     const params = new URLSearchParams();
     if (court) params.set("court", court);
     if (status) params.set("status", status);
+    if (caseType) params.set("caseType", caseType);
     if (year) params.set("year", year);
     const res = await api.get(`/cases${params.toString() ? `?${params.toString()}` : ""}`);
     setCases(res.data);
-  }, [court, status, year]);
+  }, [caseType, court, status, year]);
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -72,6 +75,7 @@ export default function Dashboard() {
   const filteredCases = cases.filter((c) => {
     if (court && c.court !== court) return false;
     if (status && c.status !== status) return false;
+    if (caseType && c.caseType !== caseType) return false;
     if (year && formatDate(c.nextDate).slice(0, 4) !== year) return false;
     if (todayOnly && c.nextDate?.slice(0, 10) !== today) return false;
     if (selectedDate && c.nextDate?.slice(0, 10) !== selectedDate) return false;
@@ -80,6 +84,7 @@ export default function Dashboard() {
       const q = search.toLowerCase();
       return (
         c.caseNo?.toString().toLowerCase().includes(q) ||
+        c.caseType?.toLowerCase().includes(q) ||
         c.court?.toLowerCase().includes(q) ||
         c.partyName?.toLowerCase().includes(q)
       );
@@ -89,6 +94,7 @@ export default function Dashboard() {
 
   const courts = [...new Set(cases.map((c) => c.court))];
   const statuses = [...new Set(cases.map((c) => c.status))];
+  const caseTypes = [...new Set(cases.map((c) => c.caseType).filter(Boolean))];
   const years = [
     ...new Set([
       currentYear,
@@ -241,6 +247,21 @@ export default function Dashboard() {
                 </FormControl>
 
                 <FormControl sx={{ minWidth: 180 }}>
+                  <InputLabel>Case Type</InputLabel>
+                  <Select value={caseType} label="Case Type" onChange={(e) => setCaseType(e.target.value)}>
+                    <MenuItem value="">All</MenuItem>
+                    {CASE_TYPE_OPTIONS.map((type) => (
+                      <MenuItem key={type} value={type}>{type}</MenuItem>
+                    ))}
+                    {caseTypes
+                      .filter((type) => !CASE_TYPE_OPTIONS.includes(type))
+                      .map((type) => (
+                        <MenuItem key={type} value={type}>{type}</MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl sx={{ minWidth: 180 }}>
                   <InputLabel>Year</InputLabel>
                   <Select value={year} label="Year" onChange={(e) => setYear(e.target.value)}>
                     <MenuItem value="">All</MenuItem>
@@ -279,6 +300,7 @@ export default function Dashboard() {
                   onClick={() => {
                     setCourt("");
                     setStatus("");
+                    setCaseType("");
                     setYear(currentYear);
                     setTodayOnly(false);
                     setSelectedDate("");
@@ -304,7 +326,7 @@ export default function Dashboard() {
               <Table sx={{ minWidth: 980 }}>
                 <TableHead>
                   <TableRow sx={{ background: "linear-gradient(90deg, #0f3d5b 0%, #135470 100%)" }}>
-                    {["Case No", "Court", "Party Name", "Current Stage", "Next Date", "Last Hearing Date", "Last Hearing Status", "Last Hearing Remarks"].map((head) => (
+                    {["Case No", "Case Type", "Court", "Party Name", "Current Stage", "Next Date", "Last Hearing Date", "Last Hearing Status", "Last Hearing Remarks"].map((head) => (
                       <TableCell key={head} sx={{ color: "#fff", fontWeight: 700 }}>
                         {head}
                       </TableCell>
@@ -332,6 +354,7 @@ export default function Dashboard() {
                             {c.caseNo}
                           </Link>
                         </TableCell>
+                        <TableCell>{c.caseType || "-"}</TableCell>
                         <TableCell>{c.court}</TableCell>
                         <TableCell>{c.partyName}</TableCell>
                         <TableCell>
@@ -357,7 +380,7 @@ export default function Dashboard() {
 
                   {filteredCases.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={8} align="center">
+                      <TableCell colSpan={9} align="center">
                         No cases found
                       </TableCell>
                     </TableRow>

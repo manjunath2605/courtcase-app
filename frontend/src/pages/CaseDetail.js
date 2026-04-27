@@ -130,6 +130,23 @@ const isReadOnly = isViewer || isClient;
           <Divider sx={{ mb: 3 }} />
 
           <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              {isClient ? (
+                <>
+                  <Typography variant="body2" color="text.secondary">Case Type</Typography>
+                  <Typography variant="body1">{caseData.caseType || "-"}</Typography>
+                </>
+              ) : (
+                <TextField
+                  fullWidth
+                  label="Case Type"
+                  value={caseData.caseType || ""}
+                  onChange={e => setCaseData({ ...caseData, caseType: e.target.value })}
+                  disabled={isReadOnly}
+                />
+              )}
+            </Grid>
+
             {/* Case No */}
             <Grid item xs={12} md={6}>
               {isClient ? (

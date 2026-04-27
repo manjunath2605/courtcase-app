@@ -11,6 +11,7 @@ const HistoryEntrySchema = new mongoose.Schema({
 
 const CaseSchema = new mongoose.Schema({
   caseNo: String,
+  caseType: String,
   court: String,
   partyName: String,
   partyEmail: String,
