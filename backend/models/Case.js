@@ -11,7 +11,11 @@ const HistoryEntrySchema = new mongoose.Schema({
 
 const CaseSchema = new mongoose.Schema({
   caseNo: String,
-  caseType: String,
+  caseType: {
+    type: String,
+    trim: true,
+    default: ""
+  },
   court: String,
   partyName: String,
   partyEmail: String,

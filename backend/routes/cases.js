@@ -10,13 +10,10 @@ const { isAdminLike } = require("../utils/roles");
 const hashAccessCode = (code) =>
   crypto.createHash("sha256").update(String(code)).digest("hex");
 
-const normalizeCaseType = (payload) => {
-  const caseType = String(payload.caseType || "").trim();
-  const otherCaseType = String(payload.otherCaseType || "").trim();
-  const resolvedType = caseType === "Other" ? otherCaseType : caseType;
-
-  payload.caseType = resolvedType;
-  delete payload.otherCaseType;
+const resolveCaseType = (body) => {
+  const caseType = String(body?.caseType || "").trim();
+  const otherCaseType = String(body?.otherCaseType || "").trim();
+  return caseType === "Other" ? otherCaseType : caseType;
 };
 
 const normalizeDateKey = (value) => {
@@ -108,7 +105,8 @@ router.post("/", auth, async (req, res) => {
   }
 
   const payload = { ...req.body };
-  normalizeCaseType(payload);
+  payload.caseType = resolveCaseType(req.body);
+  delete payload.otherCaseType;
   const accessCode = String(payload.clientAccessCode || "").trim();
   delete payload.clientAccessCode;
   const c = new Case(payload);
@@ -154,7 +152,8 @@ router.put("/:id", auth, async (req, res) => {
   if (!existing) return res.status(404).json({ msg: "Case not found" });
 
   const updates = { ...req.body };
-  normalizeCaseType(updates);
+  updates.caseType = resolveCaseType(req.body);
+  delete updates.otherCaseType;
   const accessCode = String(updates.clientAccessCode || "").trim();
   delete updates._id;
   delete updates.__v;
